@@ -1,9 +1,8 @@
 #include common_scripts\utility;
 #include maps\_utility;
 #include scripts\cmd_system_modules\_cmd_util;
-#include scripts\cmd_system_modules\_com;
 
-CMD_INIT_PERMS()
+cmd_init_perms()
 {
 	level.tcs_player_entries = [];
 	player_perm_list = getDvar( "tcs_player_cmd_perms" );
@@ -11,8 +10,9 @@ CMD_INIT_PERMS()
 	{
 		player_entries = strTok( player_perm_list, "," );
 		index = 0;
-		foreach ( player_entry in player_entries )
+		for ( i = 0; i < player_entries.size; i++ )
 		{
+			player_entry = player_entries[ i ];
 			player_entry_array = strTok( player_entry, " " );
 			if ( isDefined( player_entry_array[ 0 ] ) && isDefined( player_entry_array[ 1 ] ) && isDefined( player_entry_array[ 2 ] ) && isDefined( player_entry_array[ 3 ] ) )
 			{
@@ -24,8 +24,8 @@ CMD_INIT_PERMS()
 			}
 			else 
 			{
-				level COM_PRINTF( "con|g_log", "permserror", "tcs_player_cmd_perms index " + index + " has (player_entry " + isDefined( player_entry_array[ 0 ] ) + "), (rank " + isDefined( player_entry_array[ 1 ] ) + "), (cmdpower_server " + isDefined( player_entry_array[ 2 ] ) + "), (cmdpower_client " + isDefined( player_entry_array[ 3 ] ) + ")" );
-				level COM_PRINTF( "con|g_log", "permserror", "Please check your tcs_player_cmd_perms dvar" );
+				level scripts\cmd_system_modules\_com::com_printf( "con|g_log", "permserror", "tcs_player_cmd_perms index " + index + " has (player_entry " + isDefined( player_entry_array[ 0 ] ) + "), (rank " + isDefined( player_entry_array[ 1 ] ) + "), (cmdpower_server " + isDefined( player_entry_array[ 2 ] ) + "), (cmdpower_client " + isDefined( player_entry_array[ 3 ] ) + ")" );
+				level scripts\cmd_system_modules\_com::com_printf( "con|g_log", "permserror", "Please check your tcs_player_cmd_perms dvar" );
 			}
 			index++;
 		}
@@ -56,7 +56,7 @@ add_player_perms_entry( player )
 			return;
 		}
 		setDvar( "tcs_player_cmd_perms", player_perm_list );
-		CMD_INIT_PERMS();
+		cmd_init_perms();
 	}
 }
 
@@ -65,11 +65,13 @@ set_player_perms_entry( player )
 	player_perm_list = getDvar( "tcs_player_cmd_perms" );
 	if ( player_perm_list != "" )
 	{
+		player_entry_array = undefined;
 		player_entries = strTok( player_perm_list, "," );
 		index = 0;
 		found_player = false;
-		foreach ( player_entry in player_entries )
+		for ( i = 0; i < player_entries.size; i++ )
 		{
+			player_entry = player_entries[ i ];
 			player_entry_array = strTok( player_entry, " " );
 			if ( find_player_in_server( player_entry_array[ 0 ] ) == player )
 			{
@@ -85,16 +87,16 @@ set_player_perms_entry( player )
 		{
 			player_entries[ index ] = player_entry_array[ 0 ] + " " + player_entry_array[ 1 ] + " " + player_entry_array[ 2 ] + " " + player_entry_array[ 3 ];
 			new_perms_list = "";
-			foreach ( player_entry in player_entries )
+			for ( i = 0; i < player_entries.size; i++ )
 			{
-				new_perms_list += player_entry + ",";
+				new_perms_list += player_entries[ i ] + ",";
 			}
 			if ( new_perms_list.size > 1024 )
 			{
 				return;
 			}
 			setDvar( "tcs_player_cmd_perms", new_perms_list );
-			CMD_INIT_PERMS();
+			cmd_init_perms();
 		}
 	}
 }
@@ -111,13 +113,13 @@ player_exists_in_perms_system( player )
 	return false;
 }
 
-CMD_COOLDOWN()
+cmd_cooldown()
 {
 	if ( self == level.host )
 	{
 		return;
 	}
-	if ( self.cmdpower_server >= level.TCS_RANK_TRUSTED_USER || self.cmdpower_client >= level.TCS_RANK_TRUSTED_USER )
+	if ( self.cmdpower_server >= level.tcs_rank_trusted_user || self.cmdpower_client >= level.tcs_rank_trusted_user )
 	{
 		return;
 	}
@@ -135,7 +137,7 @@ can_use_multi_cmds()
 	{
 		return true;
 	}
-	if ( self.cmdpower_server >= level.CMD_POWER_CHEAT || self.cmdpower_client >= level.CMD_POWER_CHEAT )
+	if ( self.cmdpower_server >= level.cmd_power_cheat || self.cmdpower_client >= level.cmd_power_cheat )
 	{
 		return true;
 	}

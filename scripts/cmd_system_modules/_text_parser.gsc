@@ -1,7 +1,6 @@
 #include common_scripts\utility;
 #include maps\_utility;
 #include scripts\cmd_system_modules\_cmd_util;
-#include scripts\cmd_system_modules\_com;
 
 parse_cmd_message( message )
 {
@@ -35,7 +34,7 @@ parse_cmd_message( message )
 		if ( cmdname != "" )
 		{
 			command_keys[ "cmdname" ] = cmdname;
-			arrayRemoveIndex( cmd_args, 0 );
+			array_remove_index( cmd_args, 0 );
 			command_keys[ "args" ] = [];
 			command_keys[ "args" ] = cmd_args;
 			command_keys[ "is_clientcmd" ] = cmd_is_clientcmd;

@@ -1,250 +1,5 @@
 #include common_scripts\utility;
 #include maps\_utility;
-#include scripts\cmd_system_modules\_com;
-
-get_perk_from_alias_zm( alias )
-{
-	switch ( alias )
-	{
-		case "ju":
-		case "jug":
-		case "jugg":
-		case "juggernog":
-			return "specialty_armorvest";
-		case "ro":
-		case "rof":
-		case "double":
-		case "doubletap":
-			return "specialty_rof";
-		case "qq":
-		case "quick":
-		case "revive":
-		case "quickrevive":
-			return "specialty_quickrevive";
-		case "sp":
-		case "speed":
-		case "fastreload":
-		case "speedcola":
-			return "specialty_fastreload";
-		case "st":
-		case "staminup":
-		case "longersprint":
-			return "specialty_longersprint";
-		case "fl":
-		case "flakjacket":
-		case "flopper":
-			return "specialty_flakjacket";
-		case "ds":
-		case "deadshot":
-			return "specialty_deadshot";
-		case "mk":
-		case "mulekick":
-			return "specialty_additionalprimaryweapon";
-		case "tm":
-		case "tombstone":
-			return "specialty_scavenger";
-		case "ww":
-		case "whoswho":
-			return "specialty_finalstand";
-		case "ec":
-		case "electriccherry":
-			return "specialty_grenadepulldeath";
-		case "va":
-		case "vultureaid":
-			return "specialty_nomotionsensor";
-		case "all":
-			return "all";
-		default:
-			return alias;
-	}
-}
-
-perk_list_zm()
-{
-	gametype = getDvar( "ui_zm_mapstartlocation" );
-	switch ( level.script )
-	{
-		case "zm_transit":
-			return array( "specialty_armorvest", "specialty_rof", "specialty_quickrevive", "specialty_fastreload", "specialty_longersprint", "specialty_scavenger" );
-		case "zm_nuked":
-			return array( "specialty_armorvest", "specialty_rof", "specialty_quickrevive", "specialty_fastreload" );
-		case "zm_highrise":
-			return array( "specialty_armorvest", "specialty_rof", "specialty_quickrevive", "specialty_fastreload", "specialty_additionalprimaryweapon", "specialty_finalstand" );
-		case "zm_prison":
-			if ( gametype == "zgrief" )
-			{
-				return array( "specialty_armorvest", "specialty_rof", "specialty_fastreload", "specialty_deadshot", "specialty_grenadepulldeath" );
-			}
-			else 
-			{
-				return array( "specialty_armorvest", "specialty_rof", "specialty_fastreload", "specialty_deadshot", "specialty_additionalprimaryweapon", "specialty_flakjacket" );
-			}
-		case "zm_buried":
-			if ( gametype == "zgrief" )
-			{
-				return array( "specialty_armorvest", "specialty_rof", "specialty_quickrevive", "specialty_fastreload", "specialty_longersprint", "specialty_additionalprimaryweapon" );
-			}
-			else 
-			{
-				return array( "specialty_armorvest", "specialty_rof", "specialty_quickrevive", "specialty_fastreload", "specialty_longersprint", "specialty_additionalprimaryweapon", "specialty_nomotionsensor" );
-			}
-		case "zm_tomb":
-			return level._random_perk_machine_perk_list;
-	}
-}
-
-get_powerup_from_alias_zm( alias )
-{
-	switch ( alias )
-	{
-		case "nuke":
-			return "nuke";
-		case "insta":
-		case "instakill":
-			return "insta_kill";
-		case "double":
-		case "doublepoints":
-			return "double_points";
-		case "max":
-		case "ammo":
-		case "maxammo":
-			return "full_ammo";
-		case "carp":
-		case "carpenter":
-			return "carpenter";
-		case "sale":
-		case "firesale":
-			return "fire_sale";
-		case "perk":
-		case "freeperk":
-			return "free_perk";
-		case "blood":
-		case "zombieblood":
-			return "zombie_blood";
-		case "points":
-			return "bonus_points";
-		case "teampoints":
-			return "bonus_points_team";
-		default:
-			return alias;
-	}
-}
-
-powerup_list_zm()
-{
-	gametype = getDvar( "g_gametype" );
-	switch ( level.script )
-	{
-		case "zm_transit":
-			if ( gametype == "zgrief" )
-			{
-				return array( "nuke", "insta_kill", "double_points", "full_ammo", "meat_stink", "teller_withdrawl" );
-			}
-			else 
-			{
-				return array( "nuke", "insta_kill", "double_points", "full_ammo", "carpenter", "teller_withdrawl" );
-			}
-		case "zm_nuked":
-			return array( "nuke", "insta_kill", "double_points", "full_ammo", "fire_sale" );
-		case "zm_highrise":
-			return array( "nuke", "insta_kill", "double_points", "full_ammo", "carpenter", "free_perk" );
-		case "zm_prison":
-			if ( gametype == "zgrief" )
-			{
-				return array( "nuke", "insta_kill", "double_points", "full_ammo", "fire_sale", "meat_stink" );
-			}
-			else 
-			{
-				return array( "nuke", "insta_kill", "double_points", "full_ammo", "fire_sale" );
-			}
-		case "zm_buried":
-			if ( gametype == "zgrief" )
-			{
-				return array( "nuke", "insta_kill", "double_points", "full_ammo", "carpenter", "free_perk", "fire_sale", "teller_withdrawl", "random_weapon", "meat_stink" );
-			}
-			else 
-			{
-				return array( "nuke", "insta_kill", "double_points", "full_ammo", "carpenter", "free_perk", "fire_sale", "teller_withdrawl", "random_weapon" );
-			}
-		case "zm_tomb":
-			return array( "nuke", "insta_kill", "double_points", "full_ammo", "free_perk", "fire_sale", "zombie_blood", "bonus_points", "bonus_points_team" );
-	}
-}
-
-get_perma_perk_from_alias( alias )
-{
-	switch ( alias )
-	{
-		case "bo":
-		case "boards":
-			return "pers_boarding";
-		case "re":
-		case "revive":
-			return "pers_reviveonperk";
-		case "he":
-		case "headshots":
-			return "pers_multikill_headshots";
-		case "ca":
-		case "cashback":
-			return "pers_cash_back_prone";
-		case "in":
-		case "instakill":
-			return "pers_insta_kill";
-		case "ju":
-		case "jugg":
-			return "pers_jugg";
-		case "cr":
-		case "carpenter":
-			return "pers_carpenter";
-		case "fl":
-		case "flopper":
-			return "pers_flopper_counter";
-		case "pe":
-		case "perklose":
-			return "pers_perk_lose_counter";
-		case "pp":
-		case "pistolpoints":
-			return "pers_double_points_counter";
-		case "sn":
-		case "sniperpoints":
-			return "pers_sniper_counter";
-		case "bx":
-		case "boxweapon":
-			return "pers_box_weapon_counter";
-		case "nu":
-		case "nube":
-			return "pers_nube_counter";
-		case "all":
-			return "all";
-		default: 
-			return alias;
-	}
-}
-
-weapon_is_available( weapon )
-{
-	possible_weapons = getArrayKeys( level.zombie_include_weapons );
-	weapon_is_available = false;
-	for ( i = 0; i < possible_weapons.size; i++ )
-	{
-		if ( weapon == possible_weapons[ i ] )
-		{
-			weapon_is_available = true;
-			break;
-		}
-	}
-	return weapon_is_available;
-}
-
-get_all_weapons()
-{
-	return getArrayKeys( level.zombie_include_weapons );
-}
-
-weapon_is_upgrade( weapon )
-{
-	return isSubStr( weapon, "upgraded" );
-}
 
 array_validate( array )
 {
@@ -257,7 +12,8 @@ cast_to_vector( vector_string )
 	vector_array = [];
 	for ( i = 0; i < keys.size; i++ )
 	{
-		vector_array[ i ] = float( keys[ i ] ); 
+		setDvar( "float", keys[ i ] );
+		vector_array[ i ] = getDvarFloat( "float" ); 
 	}
 	vector = ( vector_array[ 0 ], vector_array[ 1 ], vector_array[ 2 ] );
 	return vector;
@@ -280,6 +36,9 @@ find_player_in_server( clientnum_guid_or_name )
 		return self;
 	}
 	is_int = is_str_int( clientnum_guid_or_name );
+	client_num = undefined;
+	guid = undefined;
+	name = undefined;
 	if ( is_int && ( int( clientnum_guid_or_name ) < getDvarInt( "sv_maxclients" ) ) )
 	{
 		client_num = int( clientnum_guid_or_name );
@@ -287,7 +46,7 @@ find_player_in_server( clientnum_guid_or_name )
 	}
 	else if ( is_int )
 	{
-		GUID = int( clientnum_guid_or_name );
+		guid = int( clientnum_guid_or_name );
 		enum = 1;
 	}
 	else 
@@ -296,11 +55,13 @@ find_player_in_server( clientnum_guid_or_name )
 		enum = 2;
 	}
 	player_data = [];
+	players = get_players();
 	switch ( enum )
 	{
 		case 0:
-			foreach ( player in level.players )
+			for ( i = 0; i < players.size; i++ )
 			{
+				player = players[ i ];
 				if ( player getEntityNumber() == client_num )
 				{
 					return player;
@@ -308,17 +69,19 @@ find_player_in_server( clientnum_guid_or_name )
 			}
 			break;
 		case 1:
-			foreach ( player in level.players )
+			for ( i = 0; i < players.size; i++ )
 			{
-				if ( player getGUID() == GUID )
+				player = players[ i ];
+				if ( player getGUID() == guid )
 				{
 					return player;
 				}
 			}
 			break;
 		case 2:
-			foreach ( player in level.players )
+			for ( i = 0; i < players.size; i++ )
 			{
+				player = players[ i ];
 				if ( clean_player_name_of_clantag( toLower( player.name ) ) == clean_player_name_of_clantag( name ) || isSubStr( toLower( player.name ), name ) )
 				{
 					return player;
@@ -327,6 +90,19 @@ find_player_in_server( clientnum_guid_or_name )
 			break;
 	}
 	return undefined;
+}
+
+getDvarIntDefault( dvarname, default_value )
+{
+	cur_dvar_value = getDvar( dvarname );
+	if ( cur_dvar_value != "" )
+	{
+		return int( cur_dvar_value );
+	}
+	else 
+	{
+		return default_value;
+	}
 }
 
 getDvarStringDefault( dvarname, default_value )
@@ -346,9 +122,9 @@ is_command_token( char )
 {
 	if ( isDefined( level.custom_commands_tokens ) )
 	{
-		foreach ( token in level.custom_commands_tokens )
+		for ( i = 0; i < level.custom_commands_tokens.size; i++ )
 		{
-			if ( char == token )
+			if ( char == level.custom_commands_tokens[ i ] )
 			{
 				return true;
 			}
@@ -420,9 +196,9 @@ cast_bool_to_str( bool, binary_string_options )
 repackage_args( arg_list )
 {
 	args_string = "";
-	foreach ( arg in arg_list )
+	for ( i = 0; i < arg_list.size; i++ )
 	{
-		args_string = args_string + arg + " ";
+		args_string = args_string + arg_list[ i ] + " ";
 	}
 	return args_string;
 }
@@ -467,7 +243,70 @@ to_upper( str )
 	return new_str;
 }
 
-CMD_ADDSERVERCOMMAND( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threaded_cmd )
+is_in_array2( array, value )
+{
+	keys = getArrayKeys( array );
+	for ( i = 0; i < keys.size; i++ )
+	{
+		if ( array[ keys[ i ] ] == value )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+is_true( value )
+{
+	return isDefined( value ) && value;
+}
+
+array2( value1, value2, value3, value4, value5, value6, value7, value8, value9, value10 )
+{
+	array = [];
+	if ( isDefined( value1 ) )
+	{
+		array[ 0 ] = value1;
+	}
+	if ( isDefined( value2 ) )
+	{
+		array[ 1 ] = value2;
+	}
+	if ( isDefined( value3 ) )
+	{
+		array[ 2 ] = value3;
+	}
+	if ( isDefined( value4 ) )
+	{
+		array[ 3 ] = value4;
+	}
+	if ( isDefined( value5 ) )
+	{
+		array[ 4 ] = value5;
+	}
+	if ( isDefined( value6 ) )
+	{
+		array[ 5 ] = value6;
+	}
+	if ( isDefined( value7 ) )
+	{
+		array[ 6 ] = value7;
+	}
+	if ( isDefined( value8 ) )
+	{
+		array[ 7 ] = value8;
+	}
+	if ( isDefined( value9 ) )
+	{
+		array[ 8 ] = value9;
+	}
+	if ( isDefined( value10 ) )
+	{
+		array[ 9 ] = value10;
+	}
+}
+
+cmd_addservercommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threaded_cmd )
 {
 	aliases = strTok( cmdaliases, " " );
 	level.server_commands[ cmdname ] = spawnStruct();
@@ -486,12 +325,13 @@ CMD_ADDSERVERCOMMAND( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threa
 	}
 }
 
-CMD_REMOVESERVERCOMMAND( cmdname )
+cmd_removeservercommand( cmdname )
 {
 	new_command_array = [];
 	cmd_keys = getArrayKeys( level.server_commands );
-	foreach ( cmd in cmd_keys )
+	for ( i = 0; i < cmd_keys.size; i++ )
 	{
+		cmd = cmd_keys[ i ];
 		if ( cmdname != cmd )
 		{
 			new_command_array[ cmd ] = spawnStruct();
@@ -506,10 +346,9 @@ CMD_REMOVESERVERCOMMAND( cmdname )
 		}
 	}
 	level.server_commands = new_command_array;
-	recalculate_command_page_counts();
 } 
 
-CMD_ADDCLIENTCOMMAND( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threaded_cmd )
+cmd_addclientcommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threaded_cmd )
 {
 	aliases = strTok( cmdaliases, " " );
 	level.client_commands[ cmdname ] = spawnStruct();
@@ -528,12 +367,13 @@ CMD_ADDCLIENTCOMMAND( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threa
 	}
 }
 
-CMD_REMOVECLIENTCOMMAND( cmdname )
+cmd_removeclientcommand( cmdname )
 {
 	new_command_array = [];
 	cmd_keys = getArrayKeys( level.client_commands );
-	foreach ( cmd in cmd_keys )
+	for ( i = 0; i < cmd_keys.size; i++ )
 	{
+		cmd = cmd_keys[ i ];
 		if ( cmdname != cmd )
 		{
 			new_command_array[ cmd ] = spawnStruct();
@@ -548,80 +388,9 @@ CMD_REMOVECLIENTCOMMAND( cmdname )
 		}
 	}
 	level.client_commands = new_command_array;
-	recalculate_command_page_counts();
 } 
 
-recalculate_command_page_counts()
-{
-	total_commands = arrayCombine( level.server_commands, level.client_commands, 1, 0 );
-	level.commands_page_count = 0;
-	for ( level.commands_total = 0; level.commands_total < total_commands.size; level.commands_total++ )
-	{
-		if ( ceil( level.commands_total / level.commands_page_max ) >= level.commands_page_count )
-		{
-			level.commands_page_count++;
-		}
-	}
-
-}
-
-// CMD_CONFIG_UPDATE()
-// {
-// 	buffer = FS_read( "tcs_config.json" );
-// 	if ( buffer != "" )
-// 	{
-// 		parsed_config_array = jsonParse( buffer );
-// 		foreach (  )
-// 	}
-// }
-
-// VOTE_ADDVOTEABLE( vote_type, vote_type_aliases, usage, pre_vote_execute_func, post_vote_execute_func )
-// {
-// 	if ( !isDefined( level.custom_votes ) )
-// 	{
-// 		level.custom_votes = [];
-// 	}
-// 	if ( !isDefined( level.custom_votes[ vote_type ] ) )
-// 	{
-// 		level.custom_votes_total++;
-// 		if ( ceil( level.custom_votes_total / level.commands_page_max ) >= level.custom_votes_page_count )
-// 		{
-// 			level.custom_votes_page_count++;
-// 		}
-// 		level.custom_votes[ vote_type ] = spawnStruct();
-// 		level.custom_votes[ vote_type ].pre_func = pre_vote_execute_func;
-// 		level.custom_votes[ vote_type ].post_func = post_vote_execute_func;
-// 		level.custom_votes[ vote_type ].usage = usage;
-// 		level.custom_votes[ vote_type ].aliases = vote_type_aliases;
-// 	}
-// }
-
-// VOTE_REMOVEVOTEABLE( vote_type )
-// {
-// 	new_command_array = [];
-// 	vote_keys = getArrayKeys( level.custom_votes );
-// 	level.custom_votes_total = 0;
-// 	level.custom_votes_page_count = 0;
-// 	foreach ( vote in vote_keys )
-// 	{
-// 		if ( vote_type != vote )
-// 		{
-// 			new_command_array[ vote ] = spawnStruct();
-// 			new_command_array[ vote ].pre_func = level.custom_votes[ vote ].pre_func;
-// 			new_command_array[ vote ].post_func = level.custom_votes[ vote ].post_func;
-// 			new_command_array[ vote ].usage = level.custom_votes[ vote ].usage;
-// 			new_command_array[ vote ].aliases = level.custom_votes[ vote ].aliases;
-// 			level.custom_votes_total++;
-// 			if ( ceil( level.custom_votes_total / level.commands_page_max ) >= level.custom_votes_page_count )
-// 			{
-// 				level.custom_votes_page_count++;
-// 			}
-// 		}
-// 	}
-// 	level.custom_votes = new_command_array;
-// } 
-
-CMD_EXECUTE( cmdname, arg_list, is_clientcmd, silent, nologprint )
+cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 {
 	if ( is_true( level.threaded_commands[ cmdname ] ) )
 	{
@@ -651,64 +420,26 @@ CMD_EXECUTE( cmdname, arg_list, is_clientcmd, silent, nologprint )
 	{
 		return;
 	}
-	channel = self COM_GET_CMD_FEEDBACK_CHANNEL();
+	channel = self scripts\cmd_system_modules\_com::com_get_cmd_feedback_channel();
 	if ( result[ "filter" ] != "cmderror" )
 	{
 		cmd_log = self.name + " executed " + result[ "message" ];
 		if ( !is_true( nologprint ) )
 		{
-			level COM_PRINTF( "g_log", result[ "filter" ], cmd_log, self );
+			level scripts\cmd_system_modules\_com::com_printf( "g_log", result[ "filter" ], cmd_log, self );
 		}
 		if ( isDefined( result[ "channels" ] ) )
 		{
-			level COM_PRINTF( result[ "channels" ], result[ "filter" ], result[ "message" ], self );
+			level scripts\cmd_system_modules\_com::com_printf( result[ "channels" ], result[ "filter" ], result[ "message" ], self );
 		}
 		else 
 		{
-			level COM_PRINTF( channel, result[ "filter" ], result[ "message" ], self );
+			level scripts\cmd_system_modules\_com::com_printf( channel, result[ "filter" ], result[ "message" ], self );
 		}
 	}
 	else
 	{
-		level COM_PRINTF( channel, result[ "filter" ], result[ "message" ], self );
-	}
-}
-
-tcs_on_connect()
-{
-	level endon( "end_commands" );
-	while ( true )
-	{
-		level waittill( "connected", player );
-		foreach ( index, dvar in level.clientdvars )
-		{
-			player thread setClientDvarThread( dvar[ "name" ], dvar[ "value" ], index );
-		}
-		if ( player isHost() )
-		{
-			player.cmdpower_server = level.CMD_POWER_HOST;
-			player.cmdpower_client = level.CMD_POWER_HOST;
-			player.tcs_rank = level.TCS_RANK_HOST;
-			level.host = player;
-		}
-		else if ( array_validate( level.tcs_player_entries ) )
-		{
-			foreach ( entry in level.tcs_player_entries )
-			{
-				if ( find_player_in_server( entry.player_entry ) == player )
-				{
-					player.cmdpower_server = entry.cmdpower_server;
-					player.cmdpower_client = entry.cmdpower_client;
-					player.tcs_rank = entry.rank;
-				}
-			}
-		}
-		else 
-		{
-			player.cmdpower_server = getDvarIntDefault( "tcs_cmdpower_server_default", level.CMD_POWER_USER );
-			player.cmdpower_client = getDvarIntDefault( "tcs_cmdpower_client_default", level.CMD_POWER_USER );
-			player.tcs_rank = getDvarStringDefault( "tcs_default_rank", level.TCS_RANK_USER );
-		}
+		level scripts\cmd_system_modules\_com::com_printf( channel, result[ "filter" ], result[ "message" ], self );
 	}
 }
 

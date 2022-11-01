@@ -1,28 +1,6 @@
 #include common_scripts\utility;
 #include maps\_utility;
-
 #include scripts\cmd_system_modules\_cmd_util;
-
-/*
-CMD_TOGGLEHUD_f( arg_list )
-{
-	result = [];
-	on_off = cast_bool_to_str( is_true( self.tcs_hud_toggled ), "on off" );
-	if ( on_off == "off" )
-	{
-		self setclientuivisibilityflag( "hud_visible", 0 );
-		self.tcs_hud_toggled = true;
-	}
-	else 
-	{
-		self setclientuivisibilityflag( "hud_visible", 1 );
-		self.tcs_hud_toggled = false;
-	}
-	result[ "filter" ] = "cmdinfo";
-	result[ "message" ] = "Your hud has been toggled " + on_off;
-	return result;
-}
-*/
 
 CMD_GOD_f( arg_list )
 {
@@ -135,13 +113,14 @@ bottomless_clip()
 CMD_TELEPORT_f( arg_list )
 {
 	result = [];
+	target = undefined;
 	if ( array_validate( arg_list ) )
 	{
 		target = self find_player_in_server( arg_list[ 0 ] );
 		if ( !isDefined( target ) )
 		{
 			origin = cast_to_vector( arg_list[ 0 ] );
-			if ( isVec( origin ) )
+			if ( origin.size == 3 )
 			{
 				self setOrigin( origin );
 				result[ "filter" ] = "cmdinfo";
@@ -183,4 +162,48 @@ CMD_CVAR_f( arg_list )
 		result[ "message" ] = "Usage cvar <cvarname> <newval>";
 	}
 	return result;
+}
+
+CMD_PLAYERLIST_f( arg_list )
+{
+	channel = self scripts\cmd_system_modules\_com::com_get_cmd_feedback_channel();
+	if ( channel != "con" )
+	{
+		channel = "iprint";
+	}
+	players = get_players();
+	for ( i = 0; i < players.size; i++ )
+	{
+		message = "^3" + players[ i ].name + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
+		level scripts\cmd_system_modules\_com::com_printf( channel, "notitle", message, self );
+	}
+	if ( !is_true( self.is_server ) )
+	{
+		level scripts\cmd_system_modules\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+	}
+}
+
+CMD_CMDLIST_f( arg_list )
+{
+	channel = self scripts\cmd_system_modules\_com::com_get_cmd_feedback_channel();
+	if ( channel != "con" )
+	{
+		channel = "iprint";
+	}
+	all_commands = array_combine( level.server_commands, level.client_commands );
+	cmdnames = getArrayKeys( all_commands );
+	client_commands = getArrayKeys( level.client_commands );
+	for ( i = 0; i < cmdnames.size; i++ )
+	{
+		is_clientcmd = is_in_array2( client_commands, cmdnames[ i ] );
+		if ( self scripts\cmd_system_modules\_perms::has_permission_for_cmd( cmdnames[ i ], is_clientcmd ) )
+		{
+			message = "^3" + all_commands[ cmdnames[ i ] ].usage;
+			level scripts\cmd_system_modules\_com::com_printf( channel, "notitle", message, self );
+		}
+	}
+	if ( !is_true( self.is_server ) )
+	{
+		level scripts\cmd_system_modules\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+	}
 }
