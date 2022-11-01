@@ -1,5 +1,5 @@
-#include scripts\cmd_system_modules\_cmd_util;
-#include scripts\sp\cmd_system_modules_zm\_zm_cmd_util;
+#include scripts\csm\_cmd_util;
+#include scripts\sp\csm_zm\_zm_cmd_util;
 #include common_scripts\utility;
 #include maps\_utility;
 
