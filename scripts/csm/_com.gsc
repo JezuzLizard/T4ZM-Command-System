@@ -107,10 +107,13 @@ com_iprintln( message, players, arg_list )
 	{
 		for ( i = 0; i < players.size; i++ )
 		{
-			players[ i ] iPrintLn( message );
+			if ( isPlayer( players[ i ] ) && !is_true( players[ i ].is_server ) )
+			{
+				players[ i ] iPrintLn( message );
+			}
 		}
 	}
-	else if ( isDefined( players ) )
+	else if ( isDefined( players ) && !is_true( players.is_server ) )
 	{
 		players iPrintLn( message );
 	}
@@ -134,10 +137,13 @@ com_tell( message, players, arg_list )
 	{
 		for ( i = 0; i < players.size; i++ )
 		{
-			cmdexec( "tell " + players[ i ] getEntityNumber() + " " + message );
+			if ( isPlayer( players[ i ] ) && !is_true( players[ i ].is_server ) )
+			{
+				cmdexec( "tell " + players[ i ] getEntityNumber() + " " + message );
+			}
 		}
 	}
-	else if ( isDefined( players ) )
+	else if ( isDefined( players ) && !is_true( players.is_server ) )
 	{
 		cmdexec( "tell " + players getEntityNumber() + " " + message );
 	}
@@ -188,5 +194,12 @@ com_printf( channels, filter, message, players, arg_list )
 
 com_get_cmd_feedback_channel()
 {
-	return "iprint";
+	if ( is_true( self.is_server ) )
+	{
+		return "con";
+	}
+	else 
+	{
+		return "tell";
+	}
 }

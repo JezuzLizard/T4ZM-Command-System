@@ -35,7 +35,7 @@ kill_all_zombies()
 		zombie = ais[ i ];
         if ( isdefined( zombie ) )
         {
-            zombie dodamage( zombie.health + 666, zombie.origin, zombie, zombie, "none", "MOD_SUICIDE" );
+            zombie dodamage( zombie.health + 100, (0,0,0) );
         }
     }
 }
@@ -52,7 +52,7 @@ CMD_GIVEPOINTS_f( arg_list )
 			points = int( arg_list[ 1 ] );
 			target give_player_score( points );
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Gave " + target.name + " " + points + " points";
+			result[ "message" ] = "Gave " + target.playername + " " + points + " points";
 		}
 		else 
 		{
@@ -79,7 +79,7 @@ CMD_SPECTATOR_f( arg_list )
 		if ( isDefined( target ) )
 		{
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Successfully made " + target.name + " a spectator";
+			result[ "message" ] = "Successfully made " + target.playername + " a spectator";
 		}
 		else 
 		{
@@ -110,7 +110,7 @@ CMD_TOGGLERESPAWN_f( arg_list )
 		if ( isDefined( target ) )
 		{
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = target.name + " has their respawn toggled";
+			result[ "message" ] = target.playername + " has their respawn toggled";
 		}
 		else 
 		{
@@ -141,7 +141,7 @@ CMD_TOGGLERESPAWN_f( arg_list )
 CMD_RESPAWNSPECTATORS_f( arg_list )
 {
 	result = [];
-	players = get_players();
+	players = getPlayers();
 	for ( i = 0; i < players.size; i++ )
 	{
 		if ( players[ i ].sessionstate == "spectator" && isDefined( players[ i ].spectator_respawn ) )

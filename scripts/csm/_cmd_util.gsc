@@ -1,6 +1,65 @@
 #include common_scripts\utility;
 #include maps\_utility;
 
+find_map_from_alias( alias )
+{
+	map = "";
+	switch ( alias )
+	{
+		case "der":
+		case "derriese":
+			map = "nazi_zombie_factory";
+			break;
+		case "shi":
+		case "shino":
+		case "shinonuma":
+			map = "nazi_zombie_sumpf";
+			break;
+		case "ver":
+		case "verruckt":
+		case "asylum":
+			map = "nazi_zombie_asylum";
+			break;
+		case "nacht":
+			map = "nazi_zombie_prototype";
+			break;
+		default:
+			if ( isDefined( level.tcs_custom_map_aliases ) && isDefined( level.tcs_custom_map_aliases[ alias ] ) )
+			{
+				map = level.tcs_custom_map_aliases[ alias ];
+			}
+			break;
+	}
+	return map;
+}
+
+get_display_name_for_map( map )
+{
+	display_name = map;
+	switch ( map )
+	{
+		case "nazi_zombie_factory":
+			display_name = "Der Riese";
+			break;
+		case "nazi_zombie_sumpf":
+			display_name = "Shi No Numa";
+			break;
+		case "nazi_zombie_asylum":
+			display_name = "Verruckt";
+			break;
+		case "nazi_zombie_prototype":
+			display_name = "Nacht der Untoten";
+			break;
+		default:
+			if ( isDefined( level.tcs_custom_map_display_names ) && isDefined( level.tcs_custom_map_display_names ) )
+			{
+				display_name = level.tcs_custom_map_display_names[ map ];
+			}
+			break;
+	}
+	return display_name;
+}
+
 array_validate( array )
 {
 	return isDefined( array ) && isArray( array ) && array.size > 0;
@@ -55,7 +114,7 @@ find_player_in_server( clientnum_guid_or_name )
 		enum = 2;
 	}
 	player_data = [];
-	players = get_players();
+	players = getPlayers();
 	switch ( enum )
 	{
 		case 0:
@@ -82,7 +141,7 @@ find_player_in_server( clientnum_guid_or_name )
 			for ( i = 0; i < players.size; i++ )
 			{
 				player = players[ i ];
-				if ( clean_player_name_of_clantag( toLower( player.name ) ) == clean_player_name_of_clantag( name ) || isSubStr( toLower( player.name ), name ) )
+				if ( clean_player_name_of_clantag( toLower( player.playername ) ) == clean_player_name_of_clantag( name ) || isSubStr( toLower( player.playername ), name ) )
 				{
 					return player;
 				}
@@ -248,7 +307,7 @@ is_in_array2( array, value )
 	keys = getArrayKeys( array );
 	for ( i = 0; i < keys.size; i++ )
 	{
-		if ( array[ keys[ i ] ] == value )
+		if ( keys[ i ] == value )
 		{
 			return true;
 		}
@@ -423,7 +482,7 @@ cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
 	if ( result[ "filter" ] != "cmderror" )
 	{
-		cmd_log = self.name + " executed " + result[ "message" ];
+		cmd_log = self.playername + " executed " + result[ "message" ];
 		if ( !is_true( nologprint ) )
 		{
 			level scripts\csm\_com::com_printf( "g_log", result[ "filter" ], cmd_log, self );
@@ -448,4 +507,110 @@ setClientDvarThread( dvar, value, index )
 {
 	wait( index * 0.25 );
 	self setClientDvar( dvar, value );
+}
+
+check_for_command_alias_collisions()
+{
+	server_command_keys = getArrayKeys( level.server_commands );
+	client_command_keys = getArrayKeys( level.client_commands );
+	aliases = [];
+	for ( i = 0; i < client_command_keys.size; i++ )
+	{
+		for ( j = 0; j < level.client_commands[ client_command_keys[ i ] ].aliases.size; j++ )
+		{
+			aliases[ aliases.size ] = level.client_commands[ client_command_keys[ i ] ].aliases[ j ];
+		}
+	}
+	for ( i = 0; i < server_command_keys.size; i++ )
+	{
+		for ( j = 0; j < level.server_commands[ server_command_keys[ i ] ].aliases.size; j++ )
+		{
+			aliases[ aliases.size ] = level.server_commands[ server_command_keys[ i ] ].aliases[ j ];
+		}
+	}
+	for ( i = 0; i < aliases.size; i++ )
+	{
+		for ( j = i + 1; j < aliases.size; j++ )
+		{
+			if ( aliases[ i ] == aliases[ j ] )
+			{
+				level scripts\csm\_com::com_printf( "con", "cmderror", "Command alias collision detected alias " + aliases[ i ] + " is duplicated", level );
+				break;
+			}
+		}
+	}
+}
+
+parse_cmd_message( message )
+{
+	if ( message == "" )
+	{
+		return [];
+	}
+	//Strip command tokens.
+	stripped_message = message;
+	if ( is_command_token( message[ 0 ] ) )
+	{
+		stripped_message = "";
+		for ( i = 1; i < message.size; i++ )
+		{
+			stripped_message += message[ i ];
+		}
+	}
+	multi_cmds = [];
+	command_keys = [];
+	multiple_cmds_keys = strTok( stripped_message, "," );
+	for ( i = 0; i < multiple_cmds_keys.size; i++ )
+	{
+		cmd_args = strTok( multiple_cmds_keys[ i ], " " );
+		cmdname = get_client_cmd_from_alias( cmd_args[ 0 ] );
+		cmd_is_clientcmd = true;
+		if ( cmdname == "" )
+		{
+			cmdname = get_server_cmd_from_alias( cmd_args[ 0 ] );
+			cmd_is_clientcmd = false;
+		}
+		if ( cmdname != "" )
+		{
+			command_keys[ "cmdname" ] = cmdname;
+			array_remove_index( cmd_args, 0 );
+			command_keys[ "args" ] = [];
+			command_keys[ "args" ] = cmd_args;
+			command_keys[ "is_clientcmd" ] = cmd_is_clientcmd;
+			multi_cmds[ multi_cmds.size ] = command_keys;
+		}
+	}
+	return multi_cmds;
+}
+
+get_server_cmd_from_alias( alias )
+{
+	command_keys = getArrayKeys( level.server_commands );
+	for ( i = 0; i < command_keys.size; i++ )
+	{
+		for ( j = 0; j < level.server_commands[ command_keys[ i ] ].aliases.size; j++ )
+		{
+			if ( alias == level.server_commands[ command_keys[ i ] ].aliases[ j ] )
+			{
+				return command_keys[ i ];
+			}
+		}
+	}
+	return "";
+}
+
+get_client_cmd_from_alias( alias )
+{
+	command_keys = getArrayKeys( level.client_commands );
+	for ( i = 0; i < command_keys.size; i++ )
+	{
+		for ( j = 0; j < level.client_commands[ command_keys[ i ] ].aliases.size; j++ )
+		{
+			if ( alias == level.client_commands[ command_keys[ i ] ].aliases[ j ] )
+			{
+				return command_keys[ i ];
+			}
+		}
+	}
+	return "";
 }

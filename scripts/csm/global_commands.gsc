@@ -1,10 +1,110 @@
 #include scripts\csm\_cmd_util;
-#include scripts\csm\_com;
-#include scripts\csm\_perms;
-#include scripts\csm\_text_parser;
-
 #include common_scripts\utility;
 #include maps\_utility;
+
+CMD_RANDOMNEXTMAP_f( arg_list )
+{
+	result = [];
+	string = getDvarStringDefault( "tcs_random_map_list", "nazi_zombie_factory nazi_zombie_sumpf nazi_zombie_asylum nazi_zombie_prototype" );
+	map_keys = strTok( string, " " );
+	random_map = map_keys[ randomInt( map_keys.size ) ];
+	rotation_string = "map " + random_map;
+	setDvar( "sv_maprotationCurrent", rotation_string );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Set new secret random map";
+	return result;
+}
+
+CMD_RESETROTATION_f( arg_list )
+{
+	result = [];
+	setDvar( "sv_maprotationCurrent", getDvar( "sv_maprotation" ) );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Successfully reset the map rotation";
+	return result;
+}
+
+CMD_NEXTMAP_f( arg_list )
+{
+	result = [];
+	if ( array_validate( arg_list ) )
+	{
+		alias = arg_list[ 0 ];
+		map = find_map_from_alias( alias );
+		if ( map != "" )
+		{
+			rotation_string = "map " + map;
+			display_name = get_display_name_for_map( map );
+			setDvar( "sv_maprotationCurrent", rotation_string );
+			result[ "filter" ] = "cmdinfo";
+			result[ "message" ] = "Successfully set next map to " + display_name;
+		}
+		else 
+		{
+			result[ "filter" ] = "cmderror";
+			result[ "message" ] = "Unknown map alias " + alias;
+		}
+	}
+	else 
+	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "Usage nextmap <mapalias>";
+	}
+	return result;
+}
+
+CMD_LOCK_SERVER_f( arg_list )
+{
+	result = [];
+	if ( array_validate( arg_list ) )
+	{
+		password = arg_list[ 0 ];
+		setDvar( "g_password", password );
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Successfully locked the server with key " + password;
+	}
+	else 
+	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "Usage lock <password>";
+	}
+	return result;
+}
+
+CMD_UNLOCK_SERVER_f( arg_list )
+{
+	result = [];
+	setDvar( "g_password", "" );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Successfully unlocked the server";
+	return result;
+}
+
+CMD_SETROTATION_f( arg_list )
+{
+	result = [];
+	if ( array_validate( arg_list ) )
+	{
+		new_rotation = getDvar( arg_list[ 0 ] );
+		if ( new_rotation != "" )
+		{
+			setDvar( "sv_maprotationCurrent", new_rotation );
+			result[ "filter" ] = "cmdinfo";
+			result[ "message" ] = "Successfully set the rotation to " + new_rotation + "'s value";
+		}
+		else 
+		{
+			result[ "filter" ] = "cmderror";
+			result[ "message" ] = "New rotation dvar is blank";
+		}
+	}
+	else 
+	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "Usage: setrotation <rotationdvar>";
+	}
+	return result;
+}
 
 CMD_SERVER_DVAR_f( arg_list )
 {
@@ -32,7 +132,7 @@ CMD_CVARALL_f( arg_list )
 	{
 		dvar_name = arg_list[ 0 ];
 		dvar_value = arg_list[ 1 ];
-		players = get_players();
+		players = getPlayers();
 		for ( i = 0; i < players.size; i++ )
 		{
 			players[ i ] setClientDvar( dvar_name, dvar_value );
@@ -64,7 +164,7 @@ CMD_SETCVAR_f( arg_list )
 			dvar_value = arg_list[ 2 ];
 			player setClientDvar( dvar_name, dvar_value );
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Successfully set " + player.name + "'s " + dvar_name + " to " + dvar_value;
+			result[ "message" ] = "Successfully set " + player.playername + "'s " + dvar_name + " to " + dvar_value;
 		}
 		else 
 		{
@@ -95,7 +195,7 @@ CMD_GIVEGOD_f( arg_list )
 		else 
 		{
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Toggled god for " + target.name;
+			result[ "message" ] = "Toggled god for " + target.playername;
 		}
 	}
 	else
@@ -134,7 +234,7 @@ CMD_GIVENOTARGET_f( arg_list )
 		else 
 		{
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Toggled notarget for " + target.name;
+			result[ "message" ] = "Toggled notarget for " + target.playername;
 		}
 	}
 	else
@@ -164,7 +264,7 @@ CMD_GIVEINVISIBLE_f( arg_list )
 		else 
 		{
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Toggled invisibility for " + target.name;
+			result[ "message" ] = "Toggled invisibility for " + target.playername;
 		}
 	}
 	else
@@ -268,7 +368,7 @@ CMD_SETRANK_f( arg_list )
 				else 
 				{
 					result[ "filter" ] = "cmderror";
-					result[ "message" ] = "Insufficient cmdpower to set " + target.name + "'s rank";
+					result[ "message" ] = "Insufficient cmdpower to set " + target.playername + "'s rank";
 				}
 			}
 			else 
@@ -307,7 +407,7 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 			{
 				var_args[ i - 1 ] = arg_list[ i ];
 			}
-			players = get_players();
+			players = getPlayers();
 			for ( i = 0; i < players.size; i++ )
 			{
 				players[ i ] thread cmd_execute( cmd_to_execute, var_args, true, level.tcs_use_silent_commands, true );
@@ -334,4 +434,60 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 		result[ "message" ] = "execonallplayers <cmdname> [cmdargs]...";
 	}
 	return result;
+}
+
+CMD_PLAYERLIST_f( arg_list )
+{
+	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	if ( channel != "con" )
+	{
+		channel = "iprint";
+	}
+	players = getPlayers();
+	if ( players.size == 0 )
+	{
+		level scripts\csm\_com::com_printf( channel, "notitle", "There are no players in the server", self );
+		return;
+	}
+	for ( i = 0; i < players.size; i++ )
+	{
+		message = "^3" + players[ i ].playername + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
+		level scripts\csm\_com::com_printf( channel, "notitle", message, self );
+	}
+	if ( !is_true( self.is_server ) )
+	{
+		level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+	}
+}
+
+CMD_CMDLIST_f( arg_list )
+{
+	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	if ( channel != "con" )
+	{
+		channel = "iprint";
+	}
+	if ( is_true( self.is_server ) )
+	{
+		all_commands = level.server_commands;
+	}
+	else 
+	{
+		all_commands = array_combine( level.server_commands, level.client_commands );
+	}
+	all_commands = array_combine( level.server_commands, level.client_commands );
+	cmdnames = getArrayKeys( all_commands );
+	for ( i = 0; i < cmdnames.size; i++ )
+	{
+		is_clientcmd = isDefined( level.client_commands[ cmdnames[ i ] ] );
+		if ( self scripts\csm\_perms::has_permission_for_cmd( cmdnames[ i ], is_clientcmd ) )
+		{
+			message = "^3" + all_commands[ cmdnames[ i ] ].usage;
+			level scripts\csm\_com::com_printf( channel, "notitle", message, self );
+		}
+	}
+	if ( !is_true( self.is_server ) )
+	{
+		level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+	}
 }

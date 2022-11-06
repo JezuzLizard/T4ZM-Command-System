@@ -136,7 +136,7 @@ CMD_TELEPORT_f( arg_list )
 		{
 			self setOrigin( self.origin + anglesToForward( self.angles ) * 64 + anglesToRight( self.angles ) * 64 );
 			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Successfully teleported to " + target.name + "'s position";
+			result[ "message" ] = "Successfully teleported to " + target.playername + "'s position";
 		}
 	}
 	else 
@@ -162,48 +162,4 @@ CMD_CVAR_f( arg_list )
 		result[ "message" ] = "Usage cvar <cvarname> <newval>";
 	}
 	return result;
-}
-
-CMD_PLAYERLIST_f( arg_list )
-{
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
-	if ( channel != "con" )
-	{
-		channel = "iprint";
-	}
-	players = get_players();
-	for ( i = 0; i < players.size; i++ )
-	{
-		message = "^3" + players[ i ].name + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
-		level scripts\csm\_com::com_printf( channel, "notitle", message, self );
-	}
-	if ( !is_true( self.is_server ) )
-	{
-		level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
-	}
-}
-
-CMD_CMDLIST_f( arg_list )
-{
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
-	if ( channel != "con" )
-	{
-		channel = "iprint";
-	}
-	all_commands = array_combine( level.server_commands, level.client_commands );
-	cmdnames = getArrayKeys( all_commands );
-	client_commands = getArrayKeys( level.client_commands );
-	for ( i = 0; i < cmdnames.size; i++ )
-	{
-		is_clientcmd = is_in_array2( client_commands, cmdnames[ i ] );
-		if ( self scripts\csm\_perms::has_permission_for_cmd( cmdnames[ i ], is_clientcmd ) )
-		{
-			message = "^3" + all_commands[ cmdnames[ i ] ].usage;
-			level scripts\csm\_com::com_printf( channel, "notitle", message, self );
-		}
-	}
-	if ( !is_true( self.is_server ) )
-	{
-		level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
-	}
 }

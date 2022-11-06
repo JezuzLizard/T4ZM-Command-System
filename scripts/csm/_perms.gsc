@@ -42,7 +42,7 @@ add_player_perms_entry( player )
 	player_perm_list = getDvar( "tcs_player_cmd_perms" );
 	if ( player_perm_list != "" )
 	{
-		player_entry = player.name + " " + player.tcs_rank + " " + player.cmdpower_server + " " + player.cmdpower_client;
+		player_entry = player.playername + " " + player.tcs_rank + " " + player.cmdpower_server + " " + player.cmdpower_client;
 		if ( player_perm_list[ player_perm_list.size - 1 ] == "," )
 		{
 			player_perm_list = player_perm_list + player_entry;
@@ -115,7 +115,11 @@ player_exists_in_perms_system( player )
 
 cmd_cooldown()
 {
-	if ( self == level.host )
+	if ( is_true( self.is_server ) )
+	{
+		return;
+	}
+	if ( isDefined( level.host ) && self == level.host )
 	{
 		return;
 	}
@@ -133,7 +137,11 @@ cmd_cooldown()
 
 can_use_multi_cmds()
 {
-	if ( self == level.host )
+	if ( is_true( self.is_server ) )
+	{
+		return true;
+	}
+	if (isDefined( level.host ) && self == level.host )
 	{
 		return true;
 	}
@@ -146,7 +154,11 @@ can_use_multi_cmds()
 
 has_permission_for_cmd( cmdname, is_clientcmd )
 {
-	if ( self == level.host )
+	if ( is_true( self.is_server ) )
+	{
+		return true;
+	}
+	if ( isDefined( level.host ) && self == level.host )
 	{
 		return true;
 	}

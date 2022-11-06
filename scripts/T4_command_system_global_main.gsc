@@ -6,7 +6,10 @@
 main()
 {
 	scripts\csm\_com::com_init();
-	level.custom_commands_restart_countdown = 5;
+	level.server = spawnStruct();
+	level.server.playername = "Server";
+	level.server.is_server = true;
+	level.custom_commands_restart_countdown = 10;
 	level.commands_total = 0;
 	level.commands_page_count = 0;
 	level.commands_page_max = 4;
@@ -36,12 +39,16 @@ main()
 	{
 		level.custom_commands_tokens = strTok( tokens, " " );
 	}
-	// "\" is always useable by default
+	// "/" is always useable by default
 	scripts\csm\_perms::cmd_init_perms();
 	level.tcs_add_server_command_func = ::cmd_addservercommand;
 	level.tcs_add_client_command_func = ::cmd_addclientcommand;
 	level.tcs_remove_server_command = ::cmd_removeservercommand;
 	level.tcs_remove_client_command = ::cmd_removeclientcommand;
+	level.tcs_com_printf = scripts\csm\_com::com_printf;
+	level.tcs_com_get_feedback_channel = scripts\csm\_com::com_get_cmd_feedback_channel;
+	level.tcs_find_player_in_server = ::find_player_in_server;
+	level.tcs_check_cmd_collisions = ::check_for_command_alias_collisions;
 	level.server_commands = [];
 	cmd_addservercommand( "setcvar", "setcvar scv", "setcvar <name|guid|clientnum|self> <cvarname> <newval>", scripts\csm\global_commands::CMD_SETCVAR_f, level.cmd_power_cheat );
 	cmd_addservercommand( "dvar", "dvar dv", "dvar <dvarname> <newval>", scripts\csm\global_commands::CMD_SERVER_DVAR_f, level.cmd_power_cheat );
@@ -51,7 +58,21 @@ main()
 	cmd_addservercommand( "giveinvisible", "giveinvisible ginv", "giveinvisible <name|guid|clientnum|self>", scripts\csm\global_commands::CMD_GIVEINVISIBLE_f, level.cmd_power_cheat );
 	cmd_addservercommand( "setrank", "setrank sr", "setrank <name|guid|clientnum|self> <rank>", scripts\csm\global_commands::CMD_SETRANK_f, level.cmd_power_host );
 
+	cmd_addservercommand( "nextmap", "nextmap nm", "nextmap <mapalias>", scripts\csm\global_commands::CMD_NEXTMAP_f, level.tcs_rank_elevated_user );
+	cmd_addservercommand( "resetrotation", "resetrotation rr", "resetrotation", scripts\csm\global_commands::CMD_RESETROTATION_f, level.tcs_rank_elevated_user );
+	cmd_addservercommand( "randomnextmap", "randomnextmap rnm", "randomnextmap", scripts\csm\global_commands::CMD_RANDOMNEXTMAP_f, level.tcs_rank_elevated_user );
+	cmd_addservercommand( "restart", "restart mr", "restart", scripts\csm\global_threaded_commands::CMD_RESTART_f, level.tcs_rank_elevated_user, true );
+	cmd_addservercommand( "rotate", "rotate ro", "rotate", scripts\csm\global_threaded_commands::CMD_ROTATE_f, level.tcs_rank_elevated_user, true );
+	cmd_addservercommand( "changemap", "changemap cm", "changemap <mapalias>", scripts\csm\global_threaded_commands::CMD_CHANGEMAP_f, level.tcs_rank_elevated_user, true );
+	cmd_addservercommand( "setrotation", "setrotation sr", "setrotation <rotationdvar>", scripts\csm\global_commands::CMD_SETROTATION_f, level.tcs_rank_elevated_user );
+
+	cmd_addservercommand( "lock", "lock lk", "lock <password>", scripts\csm\global_commands::CMD_LOCK_SERVER_f, level.tcs_rank_elevated_user );
+	cmd_addservercommand( "unlock", "unlock ul", "unlock", scripts\csm\global_commands::CMD_UNLOCK_SERVER_f, level.tcs_rank_elevated_user );
+
 	cmd_addservercommand( "execonallplayers", "execonallplayers execonall exall", "execonallplayers <cmdname> [cmdargs] ...", scripts\csm\global_commands::CMD_EXECONALLPLAYERS_f, level.cmd_power_host );
+
+	cmd_addservercommand( "cmdlist", "cmdlist cl", "cmdlist", scripts\csm\global_commands::CMD_CMDLIST_f, level.cmd_power_none );
+	cmd_addservercommand( "playerlist", "playerlist plist", "playerlist", scripts\csm\global_commands::CMD_PLAYERLIST_f, level.cmd_power_none );
 
 	level.client_commands = [];
 	cmd_addclientcommand( "god", "god", "god", scripts\csm\global_client_commands::CMD_GOD_f, level.cmd_power_cheat );
@@ -62,8 +83,8 @@ main()
 	cmd_addclientcommand( "bottomlessclip", "bottomlessclip botclip bcl", "bottomlessclip", scripts\csm\global_client_commands::CMD_BOTTOMLESSCLIP_f, level.cmd_power_cheat );
 	cmd_addclientcommand( "teleport", "teleport tele", "teleport <name|guid|clientnum|origin>", scripts\csm\global_client_commands::CMD_TELEPORT_f, level.cmd_power_cheat );
 	cmd_addclientcommand( "cvar", "cvar cv", "cvar <cvarname> <newval>", scripts\csm\global_client_commands::CMD_CVAR_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "cmdlist", "cmdlist cl", "cmdlist [pagenumber]", scripts\csm\global_client_commands::CMD_CMDLIST_f, level.cmd_power_none, true );
-	cmd_addclientcommand( "playerlist", "playerlist plist", "playerlist [pagenumber] [team]", scripts\csm\global_client_commands::CMD_PLAYERLIST_f, level.cmd_power_none, true );
+
+	check_for_command_alias_collisions();
 	level thread command_buffer();
 	level thread end_commands_on_end_game();
 	level thread scr_dvar_command_watcher();
@@ -103,7 +124,14 @@ command_buffer()
 		}
 		if ( !isDefined( player ) )
 		{
-			player = level.host;
+			if ( isDedicated() )
+			{
+				player = level.server;
+			}
+			else 
+			{
+				player = level.host;
+			}
 		}
 		channel = player scripts\csm\_com::com_get_cmd_feedback_channel();
 		if ( isDefined( player.cmd_cooldown ) && player.cmd_cooldown > 0 )
@@ -112,7 +140,7 @@ command_buffer()
 			continue;
 		}
 		message = toLower( message );
-		multi_cmds = scripts\csm\_text_parser::parse_cmd_message( message );
+		multi_cmds = parse_cmd_message( message );
 		if ( multi_cmds.size < 1 )
 		{
 			level scripts\csm\_com::com_printf( channel, "cmderror", "Invalid command", self );
@@ -136,8 +164,15 @@ command_buffer()
 			}
 			else
 			{
-				player cmd_execute( cmdname, args, is_clientcmd, level.tcs_use_silent_commands, level.tcs_logprint_cmd_usage );
-				player thread scripts\csm\_perms::cmd_cooldown();
+				if ( is_clientcmd && is_true( player.is_server ) )
+				{
+					level scripts\csm\_com::com_printf( channel, "cmderror", "You cannot use " + cmdname + " client command as the server", player );
+				}
+				else 
+				{
+					player cmd_execute( cmdname, args, is_clientcmd, level.tcs_use_silent_commands, level.tcs_logprint_cmd_usage );
+					player thread scripts\csm\_perms::cmd_cooldown();
+				}
 			}
 		}
 	}
