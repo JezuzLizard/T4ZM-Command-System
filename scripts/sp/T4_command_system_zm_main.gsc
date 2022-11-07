@@ -34,13 +34,22 @@ kill_all_zombies()
 {
 	ais = getaiarray( "axis" );
 	for ( i = 0; i < ais.size; i++ )
-    {
+	{
 		zombie = ais[ i ];
-        if ( isdefined( zombie ) )
-        {
-            zombie dodamage( zombie.health + 100, (0,0,0) );
-        }
-    }
+		if ( isdefined( zombie ) )
+		{
+			zombie dodamage( zombie.health + 100, (0,0,0) );
+		}
+	}
+	ais = getAiSpeciesArray( "axis", "dog" );
+	for ( i = 0; i < ais.size; i++ )
+	{
+		zombie = ais[ i ];
+		if ( isdefined( zombie ) )
+		{
+			zombie dodamage( zombie.health + 100, (0,0,0) );
+		}
+	}
 }
 
 CMD_GIVEPOINTS_f( arg_list )

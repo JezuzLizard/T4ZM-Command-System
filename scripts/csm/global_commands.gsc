@@ -216,6 +216,56 @@ CMD_GIVEINVISIBLE_f( arg_list )
 	return result;
 }
 
+cmd_giveweapon_f( arg_list )
+{
+	result = [];
+	target = self find_player_in_server( arg_list[ 0 ] );
+	if ( !isDefined( target ) )
+	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "Could not find player";	
+		return result;
+	}
+	weapon = arg_list[ 1 ];
+	if ( weapon == "all" )
+	{
+		weapons = getArrayKeys( level.zombie_include_weapons );
+		for ( i = 0; i < weapons.size; i++ )
+		{
+			weapon_to_give = weapons[ i ];
+			if ( !target hasWeapon( weapon_to_give ) )
+			{
+				target GiveWeapon( weapon_to_give, 0 ); 
+				target GiveMaxAmmo( weapon_to_give ); 
+			}
+			else 
+			{
+				target GiveMaxAmmo( weapon_to_give ); 
+			}
+		}
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Gave " + target.playername + " all weapons";
+		return result;
+	}
+	else 
+	{
+		if ( isDefined( level.zombie_include_weapons[ weapon ] ) )
+		{
+			target GiveWeapon( weapon, 0 ); 
+			target GiveMaxAmmo( weapon ); 
+			target SwitchToWeapon( weapon );
+			result[ "filter" ] = "cmdinfo";
+			result[ "message" ] = "Gave " + target.playername + " " + weapon;
+		}
+		else 
+		{
+			result[ "filter" ] = "cmderror";
+			result[ "message" ] = "Weapon " + weapon + " is not available on map";
+		}
+		return result;
+	}	
+}
+
 CMD_SETRANK_f( arg_list )
 {
 	result = [];
@@ -394,5 +444,20 @@ CMD_CMDLIST_f( arg_list )
 		}
 	}
 
+	level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+}
+
+cmd_weaponlist_f( arg_list )
+{
+	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	if ( channel != "con" )
+	{
+		channel = "iprint";
+	}
+	weapons = getArrayKeys( level.zombie_include_weapons );
+	for ( i = 0; i < weapons.size; i++ )
+	{
+		level scripts\csm\_com::com_printf( channel, "notitle", weapons[ i ], self );
+	}
 	level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
 }

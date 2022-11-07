@@ -127,7 +127,7 @@ CMD_TELEPORT_f( arg_list )
 		else 
 		{
 			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Usage teleport <name|guid|clientnum|origin>";
+			result[ "message" ] = "Invalid origin, format is (x,y,z)";
 		}
 	}
 	else 
@@ -146,4 +146,47 @@ CMD_CVAR_f( arg_list )
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Successfully set " + arg_list[ 0 ] + " to " + arg_list[ 1 ];
 	return result;
+}
+
+cmd_weapon_f( arg_list )
+{
+	result = [];
+	weapon = arg_list[ 0 ];
+	if ( weapon == "all" )
+	{
+		weapons = getArrayKeys( level.zombie_include_weapons );
+		for ( i = 0; i < weapons.size; i++ )
+		{
+			weapon_to_give = weapons[ i ];
+			if ( !self hasWeapon( weapon_to_give ) )
+			{
+				self GiveWeapon( weapon_to_give, 0 ); 
+				self GiveMaxAmmo( weapon_to_give ); 
+			}
+			else 
+			{
+				self GiveMaxAmmo( weapon_to_give ); 
+			}
+		}
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Gave you all weapons";
+		return result;
+	}
+	else 
+	{
+		if ( isDefined( level.zombie_include_weapons[ weapon ] ) )
+		{
+			self GiveWeapon( weapon, 0 ); 
+			self GiveMaxAmmo( weapon ); 
+			self SwitchToWeapon( weapon );
+			result[ "filter" ] = "cmdinfo";
+			result[ "message" ] = "Gave you " + weapon;
+		}
+		else 
+		{
+			result[ "filter" ] = "cmderror";
+			result[ "message" ] = "Weapon " + weapon + " is not available on map";
+		}
+		return result;
+	}
 }
