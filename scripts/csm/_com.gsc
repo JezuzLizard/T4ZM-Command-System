@@ -26,6 +26,9 @@ com_init()
 	com_addchannel( "iprintbold", ::com_iprintlnbold );
 	com_addchannel( "tell", ::com_tell );
 	com_addchannel( "say", ::com_say );
+
+	com_addchannel( "iprint_array", ::com_iprintln_array );
+	com_addchannel( "tell_array", ::com_tell_array );
 }
 
 com_addfilter( filter, default_value )
@@ -101,25 +104,22 @@ com_logprint( message, players, arg_list )
 	logPrint( message + "\n" );
 }
 
-com_iprintln( message, players, arg_list )
+com_iprintln( message, player, arg_list )
+{
+	if ( isDefined( player ) && !is_true( player.is_server ) )
+	{
+		player iPrintLn( message );
+	}	
+}
+
+com_iprintln_array( message, players, arg_list )
 {
 	if ( array_validate( players ) )
 	{
 		for ( i = 0; i < players.size; i++ )
 		{
-			if ( isPlayer( players[ i ] ) && !is_true( players[ i ].is_server ) )
-			{
-				players[ i ] iPrintLn( message );
-			}
+			players[ i ] iPrintLn( message );
 		}
-	}
-	else if ( isDefined( players ) && !is_true( players.is_server ) )
-	{
-		players iPrintLn( message );
-	}
-	else 
-	{
-		com_print( "com_printf() msg " + message + " sent for channel iprintln has bad players arg" );
 	}
 }
 
@@ -131,25 +131,22 @@ com_iprintlnbold( message, players, arg_list )
 	}
 }
 
-com_tell( message, players, arg_list )
+com_tell( message, player, arg_list )
+{
+	if ( isDefined( player ) && !is_true( player.is_server ) )
+	{
+		cmdexec( "tell " + player getEntityNumber() + " " + message );
+	}
+}
+
+com_tell_array( message, players, arg_list )
 {
 	if ( array_validate( players ) )
 	{
 		for ( i = 0; i < players.size; i++ )
 		{
-			if ( isPlayer( players[ i ] ) && !is_true( players[ i ].is_server ) )
-			{
-				cmdexec( "tell " + players[ i ] getEntityNumber() + " " + message );
-			}
+			cmdexec( "tell " + players[ i ] getEntityNumber() + " " + message );
 		}
-	}
-	else if ( isDefined( players ) && !is_true( players.is_server ) )
-	{
-		cmdexec( "tell " + players getEntityNumber() + " " + message );
-	}
-	else 
-	{
-		com_print( "com_printf() msg " + message + " sent for channel tell has bad players arg" );
 	}
 }
 
@@ -187,6 +184,10 @@ com_printf( channels, filter, message, players, arg_list )
 				message_color_code = "^8";
 			}
 			message = com_caps_msg_title( channel, filter ) + message_color_code + message;
+			if ( array_validate( players ) )
+			{
+				channel = channel + "_array";
+			}
 			[[ level.com_channels[ channel ] ]]( message, players, arg_list );
 		}
 	}

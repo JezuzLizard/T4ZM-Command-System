@@ -192,37 +192,18 @@ is_command_token( char )
 	return false;
 }
 
-is_str_int( str )
+is_str_int(value)
 {
-	val = 0;
-	list_num = [];
-	list_num[ "0" ] = val;
-	val++;
-	list_num[ "1" ] = val;
-	val++;
-	list_num[ "2" ] = val;
-	val++;
-	list_num[ "3" ] = val;
-	val++;
-	list_num[ "4" ] = val;
-	val++;
-	list_num[ "5" ] = val;
-	val++;
-	list_num[ "6" ] = val;
-	val++;
-	list_num[ "7" ] = val;
-	val++;
-	list_num[ "8" ] = val;
-	val++;
-	list_num[ "9" ] = val;
-	for ( i = 0; i < str.size; i++ )
-	{
-		if ( !isDefined( list_num[ str[ i ] ] ) )
-		{
-			return false;
-		}
-	}
-	return true;
+	zero = [];
+	zero[ "0" ] = true;
+	if ( is_true( zero[ value ] ) )
+		return true;
+	return int( value ) != 0;
+}
+
+is_natural_num(value)
+{
+	return int(value) > 0;
 }
 
 clean_player_name_of_clantag( name )
@@ -451,6 +432,21 @@ cmd_removeclientcommand( cmdname )
 
 cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 {
+	/*
+	// An attempt at printing the usage if the min args isn't met
+	if ( arg_list.size == 0 )
+	{
+		channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+		if ( is_clientcmd && isDefined( level.client_commands[ cmdname ] ) )
+		{
+			level scripts\csm\_com::com_printf( channel, "cmderror", level.client_commands[ cmdname ].usage, self );
+		}
+		else if ( isDefined( level.server_commands[ cmdname ] ) )
+		{
+
+		}
+	}
+	*/
 	if ( is_true( level.threaded_commands[ cmdname ] ) )
 	{
 		if ( is_clientcmd )
@@ -511,6 +507,7 @@ setClientDvarThread( dvar, value, index )
 
 check_for_command_alias_collisions()
 {
+	wait 5;
 	server_command_keys = getArrayKeys( level.server_commands );
 	client_command_keys = getArrayKeys( level.client_commands );
 	aliases = [];
@@ -559,7 +556,7 @@ parse_cmd_message( message )
 	}
 	multi_cmds = [];
 	command_keys = [];
-	multiple_cmds_keys = strTok( stripped_message, "," );
+	multiple_cmds_keys = strTok( stripped_message, ";" );
 	for ( i = 0; i < multiple_cmds_keys.size; i++ )
 	{
 		cmd_args = strTok( multiple_cmds_keys[ i ], " " );
@@ -575,7 +572,10 @@ parse_cmd_message( message )
 			command_keys[ "cmdname" ] = cmdname;
 			array_remove_index( cmd_args, 0 );
 			command_keys[ "args" ] = [];
-			command_keys[ "args" ] = cmd_args;
+			for ( j = 1; j < cmd_args.size; j++ )
+			{
+				command_keys[ "args" ][ j - 1 ] = cmd_args[ j ];
+			}
 			command_keys[ "is_clientcmd" ] = cmd_is_clientcmd;
 			multi_cmds[ multi_cmds.size ] = command_keys;
 		}

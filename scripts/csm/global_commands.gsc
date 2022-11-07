@@ -467,27 +467,28 @@ CMD_CMDLIST_f( arg_list )
 	{
 		channel = "iprint";
 	}
-	if ( is_true( self.is_server ) )
-	{
-		all_commands = level.server_commands;
-	}
-	else 
-	{
-		all_commands = array_combine( level.server_commands, level.client_commands );
-	}
-	all_commands = array_combine( level.server_commands, level.client_commands );
-	cmdnames = getArrayKeys( all_commands );
+	cmdnames = getArrayKeys( level.server_commands );
 	for ( i = 0; i < cmdnames.size; i++ )
 	{
-		is_clientcmd = isDefined( level.client_commands[ cmdnames[ i ] ] );
-		if ( self scripts\csm\_perms::has_permission_for_cmd( cmdnames[ i ], is_clientcmd ) )
+		if ( self scripts\csm\_perms::has_permission_for_cmd( cmdnames[ i ], false ) )
 		{
-			message = "^3" + all_commands[ cmdnames[ i ] ].usage;
+			message = "^3" + level.server_commands[ cmdnames[ i ] ].usage;
 			level scripts\csm\_com::com_printf( channel, "notitle", message, self );
 		}
 	}
-	if ( !is_true( self.is_server ) )
+	if ( is_true( self.is_server ) )
 	{
-		level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+		return;
 	}
+	cmdnames = getArrayKeys( level.client_commands );
+	for ( i = 0; i < cmdnames.size; i++ )
+	{
+		if ( self scripts\csm\_perms::has_permission_for_cmd( cmdnames[ i ], true ) )
+		{
+			message = "^3" + level.client_commands[ cmdnames[ i ] ].usage;
+			level scripts\csm\_com::com_printf( channel, "notitle", message, self );
+		}
+	}
+
+	level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
 }

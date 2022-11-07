@@ -123,7 +123,7 @@ cmd_cooldown()
 	{
 		return;
 	}
-	if ( self.cmdpower_server >= level.tcs_rank_trusted_user || self.cmdpower_client >= level.tcs_rank_trusted_user )
+	if ( self.cmdpower_server >= level.cmd_power_trusted_user || self.cmdpower_client >= level.cmd_power_trusted_user )
 	{
 		return;
 	}
@@ -166,7 +166,7 @@ has_permission_for_cmd( cmdname, is_clientcmd )
 	{
 		return true;
 	}
-	if ( self.cmdpower_server >= level.server_commands[ cmdname ].power )
+	if ( !is_clientcmd && self.cmdpower_server >= level.server_commands[ cmdname ].power )
 	{
 		return true;
 	}
