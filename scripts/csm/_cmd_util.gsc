@@ -346,7 +346,7 @@ array2( value1, value2, value3, value4, value5, value6, value7, value8, value9, 
 	}
 }
 
-cmd_addservercommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threaded_cmd )
+cmd_addservercommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, minargs, is_threaded_cmd )
 {
 	aliases = strTok( cmdaliases, " " );
 	level.server_commands[ cmdname ] = spawnStruct();
@@ -354,6 +354,7 @@ cmd_addservercommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threa
 	level.server_commands[ cmdname ].func = cmdfunc;
 	level.server_commands[ cmdname ].aliases = aliases;
 	level.server_commands[ cmdname ].power = cmdpower;
+	level.server_commands[ cmdname ].minargs = minargs;
 	level.commands_total++;
 	if ( ceil( level.commands_total / level.commands_page_max ) >= level.commands_page_count )
 	{
@@ -379,6 +380,7 @@ cmd_removeservercommand( cmdname )
 			new_command_array[ cmd ].func = level.server_commands[ cmd ].func;
 			new_command_array[ cmd ].aliases = level.server_commands[ cmd ].aliases;
 			new_command_array[ cmd ].power = level.server_commands[ cmd ].power;
+			new_command_array[ cmd ].minargs = level.server_commands[ cmd ].minargs;
 		}
 		else 
 		{
@@ -388,7 +390,7 @@ cmd_removeservercommand( cmdname )
 	level.server_commands = new_command_array;
 } 
 
-cmd_addclientcommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threaded_cmd )
+cmd_addclientcommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, minargs, is_threaded_cmd )
 {
 	aliases = strTok( cmdaliases, " " );
 	level.client_commands[ cmdname ] = spawnStruct();
@@ -396,11 +398,8 @@ cmd_addclientcommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, is_threa
 	level.client_commands[ cmdname ].func = cmdfunc;
 	level.client_commands[ cmdname ].aliases = aliases;
 	level.client_commands[ cmdname ].power = cmdpower;
+	level.client_commands[ cmdname ].minargs = minargs;
 	level.commands_total++;
-	if ( ceil( level.commands_total / level.commands_page_max ) >= level.commands_page_count )
-	{
-		level.commands_page_count++;
-	}
 	if ( is_true( is_threaded_cmd ) )
 	{
 		level.threaded_commands[ cmdname ] = true;
@@ -421,6 +420,7 @@ cmd_removeclientcommand( cmdname )
 			new_command_array[ cmd ].func = level.client_commands[ cmd ].func;
 			new_command_array[ cmd ].aliases = level.client_commands[ cmd ].aliases;
 			new_command_array[ cmd ].power = level.client_commands[ cmd ].power;
+			new_command_array[ cmd ].minargs = level.client_commands[ cmd ].minargs;
 		}
 		else 
 		{
@@ -432,39 +432,37 @@ cmd_removeclientcommand( cmdname )
 
 cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 {
-	/*
 	// An attempt at printing the usage if the min args isn't met
-	if ( arg_list.size == 0 )
+	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	result = [];
+	if ( is_clientcmd )
 	{
-		channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
-		if ( is_clientcmd && isDefined( level.client_commands[ cmdname ] ) )
+		if ( arg_list.size < level.client_commands[ cmdname ].minargs )
 		{
-			level scripts\csm\_com::com_printf( channel, "cmderror", level.client_commands[ cmdname ].usage, self );
+			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.client_commands[ cmdname ].usage, self );
+			return;
 		}
-		else if ( isDefined( level.server_commands[ cmdname ] ) )
-		{
-
-		}
-	}
-	*/
-	if ( is_true( level.threaded_commands[ cmdname ] ) )
-	{
-		if ( is_clientcmd )
+		if ( is_true( level.threaded_commands[ cmdname ] ) )
 		{
 			self thread [[ level.client_commands[ cmdname ].func ]]( arg_list );
+			return;
 		}
 		else 
 		{
-			self thread [[ level.server_commands[ cmdname ].func ]]( arg_list );
-		}
-		return;
-	}
-	else 
-	{
-		result = [];
-		if ( is_clientcmd )
-		{
 			result = self [[ level.client_commands[ cmdname].func ]]( arg_list );
+		}
+	}
+	else
+	{
+		if ( arg_list.size < level.server_commands[ cmdname ].minargs )
+		{
+			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.server_commands[ cmdname ].usage, self );
+			return;
+		}
+		if ( is_true( level.threaded_commands[ cmdname ] ) )
+		{
+			self thread [[ level.server_commands[ cmdname ].func ]]( arg_list );
+			return;
 		}
 		else 
 		{
@@ -613,4 +611,26 @@ get_client_cmd_from_alias( alias )
 		}
 	}
 	return "";
+}
+
+test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
+{
+	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	if ( is_clientcmd )
+	{
+		if ( arg_list.size < level.client_commands[ cmdname ].minargs )
+		{
+			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.client_commands[ cmdname ].usage, self );
+			return false;
+		}
+	}
+	else
+	{
+		if ( arg_list.size < level.server_commands[ cmdname ].min_args )
+		{
+			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.server_commands[ cmdname ].usage, self );
+			return false;
+		}
+	}
+	return true;
 }

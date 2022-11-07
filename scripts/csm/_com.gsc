@@ -201,6 +201,6 @@ com_get_cmd_feedback_channel()
 	}
 	else 
 	{
-		return "tell";
+		return "iprint";
 	}
 }

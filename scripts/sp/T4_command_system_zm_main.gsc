@@ -9,14 +9,14 @@ main()
 	{
 		wait 0.05;
 	}
-	cmd_addservercommand( "spectator", "spectator spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, level.cmd_power_cheat );
-	cmd_addservercommand( "togglerespawn", "togglerespawn togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, level.cmd_power_cheat );
-	cmd_addservercommand( "killactors", "killactors ka", "killactors", ::CMD_KILLACTORS_f, level.cmd_power_cheat );
-	cmd_addservercommand( "respawnspectators", "respawnspectators respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, level.cmd_power_cheat );
-	cmd_addservercommand( "givepoints", "givepoints gpts", "givepoints <name|guid|clientnum|self> <amount>", ::CMD_GIVEPOINTS_f, level.cmd_power_cheat );
-	cmd_addservercommand( "giveautokill", "giveautokill gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "points", "points pts", "points <amount>", ::CMD_POINTS_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "autokill", "autokill ak", "autokill", ::cmd_autokill_f, level.cmd_power_cheat );
+	cmd_addservercommand( "spectator", "spectator spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, level.cmd_power_cheat, 1 );
+	cmd_addservercommand( "togglerespawn", "togglerespawn togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, level.cmd_power_cheat, 1 );
+	cmd_addservercommand( "killactors", "killactors ka", "killactors", ::CMD_KILLACTORS_f, level.cmd_power_cheat, 0 );
+	cmd_addservercommand( "respawnspectators", "respawnspectators respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, level.cmd_power_cheat, 0 );
+	cmd_addservercommand( "givepoints", "givepoints gpts", "givepoints <name|guid|clientnum|self> <amount>", ::CMD_GIVEPOINTS_f, level.cmd_power_cheat, 2 );
+	cmd_addservercommand( "giveautokill", "giveautokill gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, level.cmd_power_cheat, 1 );
+	cmd_addclientcommand( "points", "points pts", "points <amount>", ::CMD_POINTS_f, level.cmd_power_cheat, 1 );
+	cmd_addclientcommand( "autokill", "autokill ak", "autokill", ::cmd_autokill_f, level.cmd_power_cheat, 0 );
 	level thread check_for_command_alias_collisions();
 	level.zm_command_init_done = true;
 }
@@ -232,7 +232,7 @@ cmd_autokill_f( arg_list )
 		self thread kill_all_zombs_with_bullets();
 		self thread autokill_toggle();
 	}
-	result[ "cmdinfo" ] = "cmdinfo";
+	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Toggled autokill for " + self.playername;
 	return result;
 }

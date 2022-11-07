@@ -50,39 +50,39 @@ main()
 	level.tcs_find_player_in_server = ::find_player_in_server;
 	level.tcs_check_cmd_collisions = ::check_for_command_alias_collisions;
 	level.server_commands = [];
-	cmd_addservercommand( "setcvar", "setcvar scv", "setcvar <name|guid|clientnum|self> <cvarname> <newval>", scripts\csm\global_commands::CMD_SETCVAR_f, level.cmd_power_cheat );
-	cmd_addservercommand( "dvar", "dvar dv", "dvar <dvarname> <newval>", scripts\csm\global_commands::CMD_SERVER_DVAR_f, level.cmd_power_cheat );
-	cmd_addservercommand( "cvarall", "cvarall cva", "cvarall <cvarname> <newval>", scripts\csm\global_commands::CMD_CVARALL_f, level.cmd_power_cheat );
-	cmd_addservercommand( "givegod", "givegod ggd", "givegod <name|guid|clientnum|self>", scripts\csm\global_commands::CMD_GIVEGOD_f, level.cmd_power_cheat );
-	cmd_addservercommand( "givenotarget", "givenotarget gnt", "givenotarget <name|guid|clientnum|self>", scripts\csm\global_commands::CMD_GIVENOTARGET_f, level.cmd_power_cheat );
-	cmd_addservercommand( "giveinvisible", "giveinvisible ginv", "giveinvisible <name|guid|clientnum|self>", scripts\csm\global_commands::CMD_GIVEINVISIBLE_f, level.cmd_power_cheat );
-	cmd_addservercommand( "setrank", "setrank sr", "setrank <name|guid|clientnum|self> <rank>", scripts\csm\global_commands::CMD_SETRANK_f, level.cmd_power_host );
+	cmd_addservercommand( "setcvar", "setcvar scv", "setcvar <name|guid|clientnum|self> <cvarname> <newval>", scripts\csm\global_commands::CMD_SETCVAR_f, level.cmd_power_cheat, 2 );
+	cmd_addservercommand( "dvar", "dvar dv", "dvar <dvarname> <newval>", scripts\csm\global_commands::CMD_SERVER_DVAR_f, level.cmd_power_cheat, 2 );
+	cmd_addservercommand( "cvarall", "cvarall cva", "cvarall <cvarname> <newval>", scripts\csm\global_commands::CMD_CVARALL_f, level.cmd_power_cheat, 2 );
+	cmd_addservercommand( "givegod", "givegod ggd", "givegod <name|guid|clientnum|self>", scripts\csm\global_commands::CMD_GIVEGOD_f, level.cmd_power_cheat, 1 );
+	cmd_addservercommand( "givenotarget", "givenotarget gnt", "givenotarget <name|guid|clientnum|self>", scripts\csm\global_commands::CMD_GIVENOTARGET_f, level.cmd_power_cheat, 1 );
+	cmd_addservercommand( "giveinvisible", "giveinvisible ginv", "giveinvisible <name|guid|clientnum|self>", scripts\csm\global_commands::CMD_GIVEINVISIBLE_f, level.cmd_power_cheat, 1 );
+	cmd_addservercommand( "setrank", "setrank sr", "setrank <name|guid|clientnum|self> <rank>", scripts\csm\global_commands::CMD_SETRANK_f, level.cmd_power_host, 2 );
 
-	cmd_addservercommand( "nextmap", "nextmap nm", "nextmap <mapalias>", scripts\csm\global_commands::CMD_NEXTMAP_f, level.cmd_power_elevated_user );
-	cmd_addservercommand( "resetrotation", "resetrotation rr", "resetrotation", scripts\csm\global_commands::CMD_RESETROTATION_f, level.cmd_power_elevated_user );
-	cmd_addservercommand( "randomnextmap", "randomnextmap rnm", "randomnextmap", scripts\csm\global_commands::CMD_RANDOMNEXTMAP_f, level.cmd_power_elevated_user );
-	cmd_addservercommand( "restart", "restart mr", "restart", scripts\csm\global_threaded_commands::CMD_RESTART_f, level.cmd_power_elevated_user, true );
-	cmd_addservercommand( "rotate", "rotate ro", "rotate", scripts\csm\global_threaded_commands::CMD_ROTATE_f, level.cmd_power_elevated_user, true );
-	cmd_addservercommand( "changemap", "changemap cm", "changemap <mapalias>", scripts\csm\global_threaded_commands::CMD_CHANGEMAP_f, level.cmd_power_elevated_user, true );
-	cmd_addservercommand( "setrotation", "setrotation setr", "setrotation <rotationdvar>", scripts\csm\global_commands::CMD_SETROTATION_f, level.cmd_power_elevated_user );
+	cmd_addservercommand( "nextmap", "nextmap nm", "nextmap <mapalias>", scripts\csm\global_commands::CMD_NEXTMAP_f, level.cmd_power_elevated_user, 1 );
+	cmd_addservercommand( "resetrotation", "resetrotation rr", "resetrotation", scripts\csm\global_commands::CMD_RESETROTATION_f, level.cmd_power_elevated_user, 0 );
+	cmd_addservercommand( "randomnextmap", "randomnextmap rnm", "randomnextmap", scripts\csm\global_commands::CMD_RANDOMNEXTMAP_f, level.cmd_power_elevated_user, 0 );
+	cmd_addservercommand( "restart", "restart mr", "restart", scripts\csm\global_threaded_commands::CMD_RESTART_f, level.cmd_power_elevated_user, 0, true );
+	cmd_addservercommand( "rotate", "rotate ro", "rotate", scripts\csm\global_threaded_commands::CMD_ROTATE_f, level.cmd_power_elevated_user, 0, true );
+	cmd_addservercommand( "changemap", "changemap cm", "changemap <mapalias>", scripts\csm\global_threaded_commands::CMD_CHANGEMAP_f, level.cmd_power_elevated_user, 1, true );
+	cmd_addservercommand( "setrotation", "setrotation setr", "setrotation <rotationdvar>", scripts\csm\global_commands::CMD_SETROTATION_f, level.cmd_power_elevated_user, 1 );
 
-	cmd_addservercommand( "lock", "lock lk", "lock <password>", scripts\csm\global_commands::CMD_LOCK_SERVER_f, level.cmd_power_elevated_user );
-	cmd_addservercommand( "unlock", "unlock ul", "unlock", scripts\csm\global_commands::CMD_UNLOCK_SERVER_f, level.cmd_power_elevated_user );
+	cmd_addservercommand( "lock", "lock lk", "lock <password>", scripts\csm\global_commands::CMD_LOCK_SERVER_f, level.cmd_power_elevated_user, 1 );
+	cmd_addservercommand( "unlock", "unlock ul", "unlock", scripts\csm\global_commands::CMD_UNLOCK_SERVER_f, level.cmd_power_elevated_user, 0 );
 
-	cmd_addservercommand( "execonallplayers", "execonallplayers execonall exall", "execonallplayers <cmdname> [cmdargs] ...", scripts\csm\global_commands::CMD_EXECONALLPLAYERS_f, level.cmd_power_host );
+	cmd_addservercommand( "execonallplayers", "execonallplayers execonall exall", "execonallplayers <cmdname> [cmdargs] ...", scripts\csm\global_commands::CMD_EXECONALLPLAYERS_f, level.cmd_power_host, 1 );
 
-	cmd_addservercommand( "cmdlist", "cmdlist cl", "cmdlist", scripts\csm\global_commands::CMD_CMDLIST_f, level.cmd_power_none );
-	cmd_addservercommand( "playerlist", "playerlist plist", "playerlist", scripts\csm\global_commands::CMD_PLAYERLIST_f, level.cmd_power_none );
+	cmd_addservercommand( "cmdlist", "cmdlist cl", "cmdlist", scripts\csm\global_commands::CMD_CMDLIST_f, level.cmd_power_none, 0 );
+	cmd_addservercommand( "playerlist", "playerlist plist", "playerlist", scripts\csm\global_commands::CMD_PLAYERLIST_f, level.cmd_power_none, 0 );
 
 	level.client_commands = [];
-	cmd_addclientcommand( "god", "god", "god", scripts\csm\global_client_commands::CMD_GOD_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "notarget", "notarget nt", "notarget", scripts\csm\global_client_commands::CMD_NOTARGET_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "invisible", "invisible invis", "invisible", scripts\csm\global_client_commands::CMD_INVISIBLE_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "printorigin", "printorigin printorg por", "printorigin", scripts\csm\global_client_commands::CMD_PRINTORIGIN_f, level.cmd_power_none );
-	cmd_addclientcommand( "printangles", "printangles printang pan", "printangles", scripts\csm\global_client_commands::CMD_PRINTANGLES_f, level.cmd_power_none );
-	cmd_addclientcommand( "bottomlessclip", "bottomlessclip botclip bcl", "bottomlessclip", scripts\csm\global_client_commands::CMD_BOTTOMLESSCLIP_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "teleport", "teleport tele", "teleport <name|guid|clientnum|origin>", scripts\csm\global_client_commands::CMD_TELEPORT_f, level.cmd_power_cheat );
-	cmd_addclientcommand( "cvar", "cvar cv", "cvar <cvarname> <newval>", scripts\csm\global_client_commands::CMD_CVAR_f, level.cmd_power_cheat );
+	cmd_addclientcommand( "god", "god", "god", scripts\csm\global_client_commands::CMD_GOD_f, level.cmd_power_cheat, 0 );
+	cmd_addclientcommand( "notarget", "notarget nt", "notarget", scripts\csm\global_client_commands::CMD_NOTARGET_f, level.cmd_power_cheat, 0 );
+	cmd_addclientcommand( "invisible", "invisible invis", "invisible", scripts\csm\global_client_commands::CMD_INVISIBLE_f, level.cmd_power_cheat, 0 );
+	cmd_addclientcommand( "printorigin", "printorigin printorg por", "printorigin", scripts\csm\global_client_commands::CMD_PRINTORIGIN_f, level.cmd_power_none, 0 );
+	cmd_addclientcommand( "printangles", "printangles printang pan", "printangles", scripts\csm\global_client_commands::CMD_PRINTANGLES_f, level.cmd_power_none, 0 );
+	cmd_addclientcommand( "bottomlessclip", "bottomlessclip botclip bcl", "bottomlessclip", scripts\csm\global_client_commands::CMD_BOTTOMLESSCLIP_f, level.cmd_power_cheat, 0 );
+	cmd_addclientcommand( "teleport", "teleport tele", "teleport <name|guid|clientnum|origin>", scripts\csm\global_client_commands::CMD_TELEPORT_f, level.cmd_power_cheat, 1 );
+	cmd_addclientcommand( "cvar", "cvar cv", "cvar <cvarname> <newval>", scripts\csm\global_client_commands::CMD_CVAR_f, level.cmd_power_cheat, 2 );
 
 	level thread check_for_command_alias_collisions();
 	level thread command_buffer();

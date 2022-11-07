@@ -114,35 +114,27 @@ CMD_TELEPORT_f( arg_list )
 {
 	result = [];
 	target = undefined;
-	if ( array_validate( arg_list ) )
+	target = self find_player_in_server( arg_list[ 0 ] );
+	if ( !isDefined( target ) )
 	{
-		target = self find_player_in_server( arg_list[ 0 ] );
-		if ( !isDefined( target ) )
+		origin = cast_to_vector( arg_list[ 0 ] );
+		if ( origin.size == 3 )
 		{
-			origin = cast_to_vector( arg_list[ 0 ] );
-			if ( origin.size == 3 )
-			{
-				self setOrigin( origin );
-				result[ "filter" ] = "cmdinfo";
-				result[ "message" ] = "You have successfully teleported";
-			}
-			else 
-			{
-				result[ "filter" ] = "cmderror";
-				result[ "message" ] = "Usage teleport <name|guid|clientnum|origin>";
-			}
+			self setOrigin( origin );
+			result[ "filter" ] = "cmdinfo";
+			result[ "message" ] = "You have successfully teleported";
 		}
 		else 
 		{
-			self setOrigin( self.origin + anglesToForward( self.angles ) * 64 + anglesToRight( self.angles ) * 64 );
-			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Successfully teleported to " + target.playername + "'s position";
+			result[ "filter" ] = "cmderror";
+			result[ "message" ] = "Usage teleport <name|guid|clientnum|origin>";
 		}
 	}
 	else 
 	{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Usage teleport <name|guid|clientnum|origin>";		
+		self setOrigin( self.origin + anglesToForward( self.angles ) * 64 + anglesToRight( self.angles ) * 64 );
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Successfully teleported to " + target.playername + "'s position";
 	}
 	return result;
 }
@@ -150,16 +142,8 @@ CMD_TELEPORT_f( arg_list )
 CMD_CVAR_f( arg_list )
 {
 	result = [];
-	if ( array_validate( arg_list ) && arg_list.size == 2 )
-	{
-		self setClientDvar( arg_list[ 0 ], arg_list[ 1 ] );
-		result[ "filter" ] = "cmdinfo";
-		result[ "message" ] = "Successfully set " + arg_list[ 0 ] + " to " + arg_list[ 1 ];
-	}
-	else 
-	{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Usage cvar <cvarname> <newval>";
-	}
+	self setClientDvar( arg_list[ 0 ], arg_list[ 1 ] );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Successfully set " + arg_list[ 0 ] + " to " + arg_list[ 1 ];
 	return result;
 }
