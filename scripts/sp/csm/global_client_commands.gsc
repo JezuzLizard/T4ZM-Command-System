@@ -190,3 +190,14 @@ cmd_weapon_f( arg_list )
 		return result;
 	}
 }
+
+cmd_movespeedscale_f( arg_list )
+{
+	result = [];
+	setDvar( "floatstorage", arg_list[ 0 ] );
+	arg_as_float = getDvarFloat( "floatstorage" );
+	self setMoveSpeedScale( arg_as_float );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Set your movespeedscale to " + arg_as_float;
+	return result;
+}

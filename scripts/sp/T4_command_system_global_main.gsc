@@ -58,6 +58,7 @@ main()
 	cmd_addservercommand( "giveinvisible", "giveinvisible ginv", "giveinvisible <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVEINVISIBLE_f, level.cmd_power_cheat, 1 );
 	cmd_addservercommand( "giveweapon", "giveweapon givewep", "giveweapon <name|guid|clientnum|self> <weaponname|all>", scripts\sp\csm\global_commands::cmd_giveweapon_f, level.cmd_power_cheat, 2 );
 	cmd_addservercommand( "setrank", "setrank sr", "setrank <name|guid|clientnum|self> <rank>", scripts\sp\csm\global_commands::CMD_SETRANK_f, level.cmd_power_host, 2 );
+	cmd_addservercommand( "setmovespeedscale", "setmovespeedscale smvsps smss", "setmovespeedscale <name|guid|clientnum|self> <val>", scripts\sp\csm\global_commands::cmd_setmovespeedscale_f, level.cmd_power_cheat, 2 );
 
 	cmd_addservercommand( "nextmap", "nextmap nm", "nextmap <mapalias>", scripts\sp\csm\global_commands::CMD_NEXTMAP_f, level.cmd_power_elevated_user, 1 );
 	cmd_addservercommand( "resetrotation", "resetrotation rr", "resetrotation", scripts\sp\csm\global_commands::CMD_RESETROTATION_f, level.cmd_power_elevated_user, 0 );
@@ -86,7 +87,8 @@ main()
 	cmd_addclientcommand( "teleport", "teleport tele", "teleport <name|guid|clientnum|origin>", scripts\sp\csm\global_client_commands::CMD_TELEPORT_f, level.cmd_power_cheat, 1 );
 	cmd_addclientcommand( "cvar", "cvar cv", "cvar <cvarname> <newval>", scripts\sp\csm\global_client_commands::CMD_CVAR_f, level.cmd_power_cheat, 2 );
 	cmd_addclientcommand( "weapon", "weapon wep", "weapon <weaponname|all>", scripts\sp\csm\global_client_commands::cmd_weapon_f, level.cmd_power_cheat, 1 );
-
+	cmd_addclientcommand( "movespeedscale", "movespeedscale mvsps mss", "movespeedscale <val>", scripts\sp\csm\global_client_commands::cmd_movespeedscale_f level.cmd_power_cheat, 1 );
+	
 	level thread check_for_command_alias_collisions();
 	level thread command_buffer();
 	level thread end_commands_on_end_game();

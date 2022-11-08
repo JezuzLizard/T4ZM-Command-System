@@ -132,6 +132,24 @@ CMD_SETCVAR_f( arg_list )
 	return result;
 }
 
+cmd_setmovespeedscale_f( arg_list )
+{
+	result = [];
+	target = self find_player_in_server( arg_list[ 0 ] );
+	if ( !isDefined( target ) )
+	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "Could not find player";
+		return result;
+	}
+	setDvar( "floatstorage", arg_list[ 1 ] );
+	arg_as_float = getDvarFloat( "floatstorage" );
+	target setMoveSpeedScale( arg_as_float );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Set movespeedscale for " + target.playername " to " + arg_as_float;
+	return result;
+}
+
 CMD_GIVEGOD_f( arg_list )
 {
 	result = [];
