@@ -1,6 +1,6 @@
 #include common_scripts\utility;
 #include maps\_utility;
-#include scripts\csm\_cmd_util;
+#include scripts\sp\csm\_cmd_util;
 
 CMD_GOD_f( arg_list )
 {

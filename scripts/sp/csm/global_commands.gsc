@@ -1,4 +1,4 @@
-#include scripts\csm\_cmd_util;
+#include scripts\sp\csm\_cmd_util;
 #include common_scripts\utility;
 #include maps\_utility;
 
@@ -330,8 +330,8 @@ CMD_SETRANK_f( arg_list )
 				target.tcs_rank = new_rank;
 				target.cmdpower_server = new_cmdpower_server;
 				target.cmdpower_client = new_cmdpower_client;
-				scripts\csm\_perms::add_player_perms_entry( target );
-				level scripts\csm\_com::com_printf( target scripts\csm\_com::com_get_cmd_feedback_channel(), "cmdinfo", "Your new rank is " + new_rank, target );
+				scripts\sp\csm\_perms::add_player_perms_entry( target );
+				level scripts\sp\csm\_com::com_printf( target scripts\sp\csm\_com::com_get_cmd_feedback_channel(), "cmdinfo", "Your new rank is " + new_rank, target );
 			}
 			else 
 			{
@@ -392,7 +392,7 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 
 CMD_PLAYERLIST_f( arg_list )
 {
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( channel != "con" )
 	{
 		channel = "iprint";
@@ -400,23 +400,23 @@ CMD_PLAYERLIST_f( arg_list )
 	players = getPlayers();
 	if ( players.size == 0 )
 	{
-		level scripts\csm\_com::com_printf( channel, "notitle", "There are no players in the server", self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "There are no players in the server", self );
 		return;
 	}
 	for ( i = 0; i < players.size; i++ )
 	{
 		message = "^3" + players[ i ].playername + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
-		level scripts\csm\_com::com_printf( channel, "notitle", message, self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
 	}
 	if ( !is_true( self.is_server ) )
 	{
-		level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+		level scripts\sp\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
 	}
 }
 
 CMD_CMDLIST_f( arg_list )
 {
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( channel != "con" )
 	{
 		channel = "iprint";
@@ -424,10 +424,10 @@ CMD_CMDLIST_f( arg_list )
 	cmdnames = getArrayKeys( level.server_commands );
 	for ( i = 0; i < cmdnames.size; i++ )
 	{
-		if ( self scripts\csm\_perms::has_permission_for_cmd( cmdnames[ i ], false ) )
+		if ( self scripts\sp\csm\_perms::has_permission_for_cmd( cmdnames[ i ], false ) )
 		{
 			message = "^3" + level.server_commands[ cmdnames[ i ] ].usage;
-			level scripts\csm\_com::com_printf( channel, "notitle", message, self );
+			level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
 		}
 	}
 	if ( is_true( self.is_server ) )
@@ -437,19 +437,19 @@ CMD_CMDLIST_f( arg_list )
 	cmdnames = getArrayKeys( level.client_commands );
 	for ( i = 0; i < cmdnames.size; i++ )
 	{
-		if ( self scripts\csm\_perms::has_permission_for_cmd( cmdnames[ i ], true ) )
+		if ( self scripts\sp\csm\_perms::has_permission_for_cmd( cmdnames[ i ], true ) )
 		{
 			message = "^3" + level.client_commands[ cmdnames[ i ] ].usage;
-			level scripts\csm\_com::com_printf( channel, "notitle", message, self );
+			level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
 		}
 	}
 
-	level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+	level scripts\sp\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
 }
 
 cmd_weaponlist_f( arg_list )
 {
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( channel != "con" )
 	{
 		channel = "iprint";
@@ -457,7 +457,7 @@ cmd_weaponlist_f( arg_list )
 	weapons = getArrayKeys( level.zombie_include_weapons );
 	for ( i = 0; i < weapons.size; i++ )
 	{
-		level scripts\csm\_com::com_printf( channel, "notitle", weapons[ i ], self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", weapons[ i ], self );
 	}
-	level scripts\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
+	level scripts\sp\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
 }

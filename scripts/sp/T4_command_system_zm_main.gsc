@@ -1,4 +1,4 @@
-#include scripts\csm\_cmd_util;
+#include scripts\sp\csm\_cmd_util;
 #include scripts\sp\csm_zm\_zm_cmd_util;
 #include common_scripts\utility;
 #include maps\_utility;

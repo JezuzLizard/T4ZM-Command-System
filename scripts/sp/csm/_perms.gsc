@@ -1,6 +1,6 @@
 #include common_scripts\utility;
 #include maps\_utility;
-#include scripts\csm\_cmd_util;
+#include scripts\sp\csm\_cmd_util;
 
 cmd_init_perms()
 {
@@ -24,8 +24,8 @@ cmd_init_perms()
 			}
 			else 
 			{
-				level scripts\csm\_com::com_printf( "con|g_log", "permserror", "tcs_player_cmd_perms index " + index + " has (player_entry " + isDefined( player_entry_array[ 0 ] ) + "), (rank " + isDefined( player_entry_array[ 1 ] ) + "), (cmdpower_server " + isDefined( player_entry_array[ 2 ] ) + "), (cmdpower_client " + isDefined( player_entry_array[ 3 ] ) + ")" );
-				level scripts\csm\_com::com_printf( "con|g_log", "permserror", "Please check your tcs_player_cmd_perms dvar" );
+				level scripts\sp\csm\_com::com_printf( "con|g_log", "permserror", "tcs_player_cmd_perms index " + index + " has (player_entry " + isDefined( player_entry_array[ 0 ] ) + "), (rank " + isDefined( player_entry_array[ 1 ] ) + "), (cmdpower_server " + isDefined( player_entry_array[ 2 ] ) + "), (cmdpower_client " + isDefined( player_entry_array[ 3 ] ) + ")" );
+				level scripts\sp\csm\_com::com_printf( "con|g_log", "permserror", "Please check your tcs_player_cmd_perms dvar" );
 			}
 			index++;
 		}

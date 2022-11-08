@@ -1,6 +1,6 @@
 #include common_scripts\utility;
 #include maps\_utility;
-#include scripts\csm\_cmd_util;
+#include scripts\sp\csm\_cmd_util;
 
 com_init()
 {
@@ -17,7 +17,6 @@ com_init()
 	com_addfilter( "permswarning", 1 );
 	com_addfilter( "permserror", 1 ); 
 	com_addfilter( "debug", 0 );
-	com_addfilter( "obituary", 1 );
 	com_addfilter( "notitle", 1 );
 
 	com_addchannel( "con", ::com_print );

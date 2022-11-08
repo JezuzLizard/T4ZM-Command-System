@@ -433,13 +433,13 @@ cmd_removeclientcommand( cmdname )
 cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 {
 	// An attempt at printing the usage if the min args isn't met
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	result = [];
 	if ( is_clientcmd )
 	{
 		if ( arg_list.size < level.client_commands[ cmdname ].minargs )
 		{
-			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.client_commands[ cmdname ].usage, self );
+			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.client_commands[ cmdname ].usage, self );
 			return;
 		}
 		if ( is_true( level.threaded_commands[ cmdname ] ) )
@@ -456,7 +456,7 @@ cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 	{
 		if ( arg_list.size < level.server_commands[ cmdname ].minargs )
 		{
-			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.server_commands[ cmdname ].usage, self );
+			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.server_commands[ cmdname ].usage, self );
 			return;
 		}
 		if ( is_true( level.threaded_commands[ cmdname ] ) )
@@ -473,26 +473,26 @@ cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 	{
 		return;
 	}
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( result[ "filter" ] != "cmderror" )
 	{
 		cmd_log = self.playername + " executed " + result[ "message" ];
 		if ( !is_true( nologprint ) )
 		{
-			level scripts\csm\_com::com_printf( "g_log", result[ "filter" ], cmd_log, self );
+			level scripts\sp\csm\_com::com_printf( "g_log", result[ "filter" ], cmd_log, self );
 		}
 		if ( isDefined( result[ "channels" ] ) )
 		{
-			level scripts\csm\_com::com_printf( result[ "channels" ], result[ "filter" ], result[ "message" ], self );
+			level scripts\sp\csm\_com::com_printf( result[ "channels" ], result[ "filter" ], result[ "message" ], self );
 		}
 		else 
 		{
-			level scripts\csm\_com::com_printf( channel, result[ "filter" ], result[ "message" ], self );
+			level scripts\sp\csm\_com::com_printf( channel, result[ "filter" ], result[ "message" ], self );
 		}
 	}
 	else
 	{
-		level scripts\csm\_com::com_printf( channel, result[ "filter" ], result[ "message" ], self );
+		level scripts\sp\csm\_com::com_printf( channel, result[ "filter" ], result[ "message" ], self );
 	}
 }
 
@@ -529,7 +529,7 @@ check_for_command_alias_collisions()
 		{
 			if ( aliases[ i ] == aliases[ j ] )
 			{
-				level scripts\csm\_com::com_printf( "con", "cmderror", "Command alias collision detected alias " + aliases[ i ] + " is duplicated", level );
+				level scripts\sp\csm\_com::com_printf( "con", "cmderror", "Command alias collision detected alias " + aliases[ i ] + " is duplicated", level );
 				break;
 			}
 		}
@@ -615,12 +615,12 @@ get_client_cmd_from_alias( alias )
 
 test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
 {
-	channel = self scripts\csm\_com::com_get_cmd_feedback_channel();
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( is_clientcmd )
 	{
 		if ( arg_list.size < level.client_commands[ cmdname ].minargs )
 		{
-			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.client_commands[ cmdname ].usage, self );
+			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.client_commands[ cmdname ].usage, self );
 			return false;
 		}
 	}
@@ -628,7 +628,7 @@ test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
 	{
 		if ( arg_list.size < level.server_commands[ cmdname ].min_args )
 		{
-			level scripts\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.server_commands[ cmdname ].usage, self );
+			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.server_commands[ cmdname ].usage, self );
 			return false;
 		}
 	}
