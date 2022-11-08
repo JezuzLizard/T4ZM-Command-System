@@ -146,7 +146,7 @@ cmd_setmovespeedscale_f( arg_list )
 	arg_as_float = getDvarFloat( "floatstorage" );
 	target setMoveSpeedScale( arg_as_float );
 	result[ "filter" ] = "cmdinfo";
-	result[ "message" ] = "Set movespeedscale for " + target.playername " to " + arg_as_float;
+	result[ "message" ] = "Set movespeedscale for " + target.playername + " to " + arg_as_float;
 	return result;
 }
 

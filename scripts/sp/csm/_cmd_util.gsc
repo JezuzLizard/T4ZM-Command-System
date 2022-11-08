@@ -8,11 +8,13 @@ find_map_from_alias( alias )
 	{
 		case "der":
 		case "derriese":
+		case "factory":
 			map = "nazi_zombie_factory";
 			break;
 		case "shi":
 		case "shino":
 		case "shinonuma":
+		case "sumpf":
 			map = "nazi_zombie_sumpf";
 			break;
 		case "ver":
@@ -21,6 +23,7 @@ find_map_from_alias( alias )
 			map = "nazi_zombie_asylum";
 			break;
 		case "nacht":
+		case "prototype":
 			map = "nazi_zombie_prototype";
 			break;
 		default:
@@ -160,6 +163,7 @@ getDvarIntDefault( dvarname, default_value )
 	}
 	else 
 	{
+		setDvar( dvarname, "" ); //So the dvar shows up in the console
 		return default_value;
 	}
 }
@@ -173,6 +177,7 @@ getDvarStringDefault( dvarname, default_value )
 	}
 	else 
 	{
+		setDvar( dvarname, "" ); //So the dvar shows up in the console
 		return default_value;
 	}
 }
@@ -348,7 +353,13 @@ array2( value1, value2, value3, value4, value5, value6, value7, value8, value9, 
 
 cmd_addservercommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, minargs, is_threaded_cmd )
 {
-	aliases = strTok( cmdaliases, " " );
+	aliases = [];
+	aliases[ 0 ] = cmdname;
+	cmd_aliases_tokens = strTok( cmdaliases, " " );
+	for ( i = 1; i < cmd_aliases_tokens.size; i++ )
+	{
+		aliases[ i ] = cmd_aliases_tokens[ i - 1 ];
+	}
 	level.server_commands[ cmdname ] = spawnStruct();
 	level.server_commands[ cmdname ].usage = cmdusage;
 	level.server_commands[ cmdname ].func = cmdfunc;
@@ -392,7 +403,13 @@ cmd_removeservercommand( cmdname )
 
 cmd_addclientcommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, minargs, is_threaded_cmd )
 {
-	aliases = strTok( cmdaliases, " " );
+	aliases = [];
+	aliases[ 0 ] = cmdname;
+	cmd_aliases_tokens = strTok( cmdaliases, " " );
+	for ( i = 1; i < cmd_aliases_tokens.size; i++ )
+	{
+		aliases[ i ] = cmd_aliases_tokens[ i - 1 ];
+	}
 	level.client_commands[ cmdname ] = spawnStruct();
 	level.client_commands[ cmdname ].usage = cmdusage;
 	level.client_commands[ cmdname ].func = cmdfunc;

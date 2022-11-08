@@ -24,7 +24,8 @@ CMD_CHANGEMAP_f( arg_list )
 		}
 		level notify( "end_commands" );
 		wait 0.5;
-		exitLevel( false );
+		//exitLevel( false );
+		cmdExec( "map_rotate" );
 		return;
 	}
 	level scripts\sp\csm\_com::com_printf( channel, "cmderror", "alias " + alias + " is invalid.", self );
@@ -44,7 +45,7 @@ CMD_ROTATE_f( arg_list )
 	}
 	level notify( "end_commands" );
 	wait 0.5;
-	exitLevel( false );
+	cmdExec( "map_rotate" );
 }
 
 CMD_RESTART_f( arg_list )
