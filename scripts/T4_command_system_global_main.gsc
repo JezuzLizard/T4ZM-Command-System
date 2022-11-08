@@ -212,7 +212,8 @@ tcs_on_connect()
 			for ( i = 0; i < level.tcs_player_entries.size; i++ )
 			{
 				entry = level.tcs_player_entries[ i ];
-				if ( find_player_in_server( entry.player_entry ) == player )
+				player_in_server = find_player_in_server( entry.player_entry );
+				if ( isDefined( player_in_server ) && player_in_server == player )
 				{
 					player.cmdpower_server = entry.cmdpower_server;
 					player.cmdpower_client = entry.cmdpower_client;
