@@ -87,10 +87,29 @@ server_safe_notify_thread( notify_name, index )
 	level notify( notify_name );
 }
 
-find_player_in_server( clientnum_guid_or_name )
+find_player_in_server( clientnum_guid_or_name, noprint )
 {
+	if ( !isDefined( noprint ) )
+	{
+		noprint = false;
+	}
+	if ( get_rank_value_for_player( self ) >= 4 )
+	{
+		partial_message = "clientnums and guids";
+	}
+	else 
+	{
+		partial_message = "clientnums";
+	}
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( !isDefined( clientnum_guid_or_name ) )
 	{
+		if ( !noprint )
+		{
+			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Could not find player", self );
+			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Try using /playerlist to view " + partial_message + " to use a cmd on instead of the name", self );
+		}
+
 		return undefined;
 	}
 	if ( clientnum_guid_or_name == "self" )
@@ -151,7 +170,68 @@ find_player_in_server( clientnum_guid_or_name )
 			}
 			break;
 	}
+	if ( !noprint )
+	{
+		level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Could not find player", self );
+		level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Try using /playerlist to view " + partial_message + " to use a cmd on instead of the name", self );
+	}
 	return undefined;
+}
+
+get_rank_value_for_player( player )
+{
+	if ( !isDefined( player.tcs_rank ) )
+	{
+		return 0;
+	}
+	if ( is_true( player.is_server ) )
+	{
+		return 6;
+	}
+	switch ( player.tcs_rank )
+	{
+		case "none":
+			return 0;
+		case "user":
+			return 1;
+		case "trusted":
+			return 2;
+		case "elevated":
+			return 3;
+		case "moderator":
+			return 4;
+		case "cheat":
+			return 5;
+		case "host":
+		case "owner":
+			return 6;
+		default:
+			return 0;
+	}
+}
+
+get_rank_value_for_rank( rank )
+{
+	switch ( rank )
+	{
+		case "none":
+			return 0;
+		case "user":
+			return 1;
+		case "trusted":
+			return 2;
+		case "elevated":
+			return 3;
+		case "moderator":
+			return 4;
+		case "cheat":
+			return 5;
+		case "host":
+		case "owner":
+			return 6;
+		default:
+			return 0;
+	}	
 }
 
 getDvarIntDefault( dvarname, default_value )
@@ -184,15 +264,9 @@ getDvarStringDefault( dvarname, default_value )
 
 is_command_token( char )
 {
-	if ( isDefined( level.custom_commands_tokens ) )
+	if ( isDefined( level.custom_commands_tokens ) && isDefined( level.custom_commands_tokens[ char ] ) )
 	{
-		for ( i = 0; i < level.custom_commands_tokens.size; i++ )
-		{
-			if ( char == level.custom_commands_tokens[ i ] )
-			{
-				return true;
-			}
-		}
+		return true;
 	}
 	return false;
 }
@@ -213,11 +287,44 @@ is_natural_num(value)
 
 clean_player_name_of_clantag( name )
 {
-	if ( isSubStr( name, "]" ) )
+	//count how many square brackets are in the name
+	//because Plutonium allows users to create names with square brackets in them criiiiiinge
+	cancer_chars_left = [];
+	cancer_chars_left[ "[" ] = true;
+	cancer_chars_right = [];
+	cancer_chars_right[ "]" ] = true;
+	count_left = 0;
+	count_right = 0;
+	name_is_cancer = false;
+	for ( i = 0; i < name.size; i++ )
 	{
-		keys = strTok( name, "]" );
-		return keys[ 1 ];
+		if ( is_true( cancer_chars_left[ name[ i ] ] ) )
+		{
+			count_left++;
+		}
+		else if ( is_true( cancer_chars_right[ name[ i ] ] ) )
+		{
+			count_right++;
+		}
+		if ( count_left > 1 || count_right > 1 )
+		{
+			name_is_cancer = true;
+			break;
+		}
 	}
+	if ( name_is_cancer )
+	{
+		return name;
+	}
+	else 
+	{
+		if ( isSubStr( name, "]" ) )
+		{
+			keys = strTok( name, "]" );
+			return keys[ 1 ];
+		}
+	}
+
 	return name;
 }
 
@@ -355,10 +462,13 @@ cmd_addservercommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, minargs,
 {
 	aliases = [];
 	aliases[ 0 ] = cmdname;
-	cmd_aliases_tokens = strTok( cmdaliases, " " );
-	for ( i = 1; i < cmd_aliases_tokens.size; i++ )
+	if ( isDefined( cmdaliases ) )
 	{
-		aliases[ i ] = cmd_aliases_tokens[ i - 1 ];
+		cmd_aliases_tokens = strTok( cmdaliases, " " );
+		for ( i = 1; i < cmd_aliases_tokens.size; i++ )
+		{
+			aliases[ i ] = cmd_aliases_tokens[ i - 1 ];
+		}
 	}
 	level.server_commands[ cmdname ] = spawnStruct();
 	level.server_commands[ cmdname ].usage = cmdusage;
@@ -367,10 +477,6 @@ cmd_addservercommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, minargs,
 	level.server_commands[ cmdname ].power = cmdpower;
 	level.server_commands[ cmdname ].minargs = minargs;
 	level.commands_total++;
-	if ( ceil( level.commands_total / level.commands_page_max ) >= level.commands_page_count )
-	{
-		level.commands_page_count++;
-	}
 	if ( is_true( is_threaded_cmd ) )
 	{
 		level.threaded_commands[ cmdname ] = true;
@@ -399,16 +505,27 @@ cmd_removeservercommand( cmdname )
 		}
 	}
 	level.server_commands = new_command_array;
-} 
+}
+
+cmd_setservercommandcmdpower( cmdname, power )
+{
+	if ( isDefined( level.server_commands[ cmdname ] ) )
+	{
+		level.server_commands[ cmdname ].power = power;
+	}
+}
 
 cmd_addclientcommand( cmdname, cmdaliases, cmdusage, cmdfunc, cmdpower, minargs, is_threaded_cmd )
 {
 	aliases = [];
 	aliases[ 0 ] = cmdname;
-	cmd_aliases_tokens = strTok( cmdaliases, " " );
-	for ( i = 1; i < cmd_aliases_tokens.size; i++ )
+	if ( isDefined( cmdaliases ) )
 	{
-		aliases[ i ] = cmd_aliases_tokens[ i - 1 ];
+		cmd_aliases_tokens = strTok( cmdaliases, " " );
+		for ( i = 1; i < cmd_aliases_tokens.size; i++ )
+		{
+			aliases[ i ] = cmd_aliases_tokens[ i - 1 ];
+		}
 	}
 	level.client_commands[ cmdname ] = spawnStruct();
 	level.client_commands[ cmdname ].usage = cmdusage;
@@ -445,20 +562,27 @@ cmd_removeclientcommand( cmdname )
 		}
 	}
 	level.client_commands = new_command_array;
-} 
+}
+
+cmd_setclientcommandcmdpower( cmdname, power )
+{
+	if ( isDefined( level.client_commands[ cmdname ] ) )
+	{
+		level.client_commands[ cmdname ].power = power;
+	}
+}
 
 cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 {
 	// An attempt at printing the usage if the min args isn't met
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	result = [];
+	if ( !test_cmd_is_valid( cmdname, arg_list, is_clientcmd ) )
+	{
+		return;
+	}
 	if ( is_clientcmd )
 	{
-		if ( arg_list.size < level.client_commands[ cmdname ].minargs )
-		{
-			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.client_commands[ cmdname ].usage, self );
-			return;
-		}
 		if ( is_true( level.threaded_commands[ cmdname ] ) )
 		{
 			self thread [[ level.client_commands[ cmdname ].func ]]( arg_list );
@@ -469,13 +593,8 @@ cmd_execute( cmdname, arg_list, is_clientcmd, silent, nologprint )
 			result = self [[ level.client_commands[ cmdname].func ]]( arg_list );
 		}
 	}
-	else
+	else 
 	{
-		if ( arg_list.size < level.server_commands[ cmdname ].minargs )
-		{
-			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Usage: " + level.server_commands[ cmdname ].usage, self );
-			return;
-		}
 		if ( is_true( level.threaded_commands[ cmdname ] ) )
 		{
 			self thread [[ level.server_commands[ cmdname ].func ]]( arg_list );

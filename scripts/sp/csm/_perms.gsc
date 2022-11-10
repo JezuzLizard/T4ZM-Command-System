@@ -73,7 +73,8 @@ set_player_perms_entry( player )
 		{
 			player_entry = player_entries[ i ];
 			player_entry_array = strTok( player_entry, " " );
-			if ( find_player_in_server( player_entry_array[ 0 ] ) == player )
+			player_in_server = find_player_in_server( player_entry_array[ 0 ], true );
+			if ( isDefined( player_in_server ) && player_in_server == player )
 			{
 				player_entry_array[ 1 ] = player.tcs_rank;
 				player_entry_array[ 2 ] = player.cmdpower_server + "";
@@ -81,7 +82,10 @@ set_player_perms_entry( player )
 				found_player = true;
 				break;
 			}
-			index++;
+			if ( !found_player )
+			{
+				index++;
+			}
 		}
 		if ( found_player )
 		{
@@ -105,7 +109,8 @@ player_exists_in_perms_system( player )
 {
 	for ( i = 0; i < level.tcs_player_entries.size; i++ )
 	{
-		if ( find_player_in_server( level.tcs_player_entries[ i ].player_entry ) == player )
+		player_in_server = find_player_in_server( level.tcs_player_entries[ i ].player_entry, true );
+		if ( isDefined( player_in_server ) && player_in_server == player )
 		{
 			return true;
 		}

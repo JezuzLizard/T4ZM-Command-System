@@ -55,98 +55,60 @@ kill_all_zombies()
 CMD_GIVEPOINTS_f( arg_list )
 {
 	result = [];
-	target = undefined;
-	if ( array_validate( arg_list ) && arg_list.size == 2 )
+	target = self find_player_in_server( arg_list[ 0 ] );
+	if ( !isDefined( target ) )
 	{
-		target = self find_player_in_server( arg_list[ 0 ] );
-		if ( isDefined( target ) )
-		{
-			points = int( arg_list[ 1 ] );
-			target give_player_score( points );
-			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Gave " + target.playername + " " + points + " points";
-		}
-		else 
-		{
-
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Could not find player";
-		}
+		return result;
 	}
-	else
-	{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Usage givepoints <name|guid|clientnum|self> <amount>";
-	}
+	points = int( arg_list[ 1 ] );
+	target give_player_score( points );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Gave " + target.playername + " " + points + " points";
 	return result;
 }
 
 CMD_SPECTATOR_f( arg_list )
 {
 	result = [];
-	target = undefined;
-	if ( array_validate( arg_list ) )
+	target = self find_player_in_server( arg_list[ 0 ] );
+	if ( !isDefined( target ) )
 	{
-		target = self find_player_in_server( arg_list[ 0 ] );
-		if ( isDefined( target ) )
-		{
-			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Successfully made " + target.playername + " a spectator";
-		}
-		else 
-		{
-
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Could not find player";
-		}
+		return result;
 	}
-	if ( isDefined( target ) )
+	target maps\_zombiemode::spawnspectator();
+	if ( !isDefined( target.tcs_original_respawn ) )
 	{
-		target maps\_zombiemode::spawnspectator();
-		if ( !isDefined( target.tcs_original_respawn ) )
-		{
-			target.tcs_original_respawn = target.spectator_respawn;
-		}
-		target.spectator_respawn = undefined;
+		target.tcs_original_respawn = target.spectator_respawn;
 	}
+	target.spectator_respawn = undefined;
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Successfully made " + target.playername + " a spectator";
 	return result;
 }
 
 CMD_TOGGLERESPAWN_f( arg_list )
 {
 	result = [];
-	target = undefined;
-	if ( array_validate( arg_list ) )
+	target = self find_player_in_server( arg_list[ 0 ] );
+	if ( !isDefined( target ) )
 	{
-		target = self find_player_in_server( arg_list[ 0 ] );
-		if ( isDefined( target ) )
-		{
-			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = target.playername + " has their respawn toggled";
-		}
-		else 
-		{
-
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Could not find player";
-		}
+		return result;
 	}
-	if ( isDefined( target ) )
+	currently_respawning = isDefined( target.spectator_respawn );
+	if ( !isDefined( target.tcs_original_respawn ) )
 	{
-		currently_respawning = isDefined( target.spectator_respawn );
-		if ( !isDefined( target.tcs_original_respawn ) )
-		{
-			target.tcs_original_respawn = target.spectator_respawn;
-		}
-		if ( currently_respawning )
-		{
-			target.spectator_respawn = undefined;
-		}
-		else 
-		{
-			target.spectator_respawn = target.tcs_original_respawn;
-		}
+		target.tcs_original_respawn = target.spectator_respawn;
 	}
+	if ( currently_respawning )
+	{
+		target.spectator_respawn = undefined;
+	}
+	else 
+	{
+		target.spectator_respawn = target.tcs_original_respawn;
+	}
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = target.playername + " has their respawn toggled";
 	return result;
 }
 
@@ -179,53 +141,32 @@ CMD_RESPAWNSPECTATORS_f( arg_list )
 CMD_POINTS_f( arg_list )
 {
 	result = [];
-	if ( array_validate( arg_list ) )
-	{
-		points = int( arg_list[ 0 ] );
-		self give_player_score( points );
-		result[ "filter" ] = "cmdinfo";
-		result[ "message" ] = "Gave you " + points + " points";
-	}
-	else
-	{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Usage points <amount>";
-	}
+	points = int( arg_list[ 0 ] );
+	self give_player_score( points );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Gave you " + points + " points";
 	return result;
 }
 
 cmd_giveautokill_f( arg_list )
 {
 	result = [];
-	target = undefined;
-	if ( array_validate( arg_list ) )
+	target = self find_player_in_server( arg_list[ 0 ] );
+	if ( !isDefined( target ) )
 	{
-		target = self find_player_in_server( arg_list[ 0 ] );
-		if ( isDefined( target ) )
-		{
-			if ( is_true( target.autokill_active ) )
-			{
-				target notify( "toggle_autokill" );
-			}
-			else 
-			{
-				target thread kill_all_zombs_with_bullets();
-				target thread autokill_toggle();
-			}
-			result[ "cmdinfo" ] = "cmdinfo";
-			result[ "message" ] = "Toggled autokill for " + target.playername;
-		}
-		else 
-		{
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Could not find player";
-		}
+		return result;
+	}
+	if ( is_true( target.autokill_active ) )
+	{
+		target notify( "toggle_autokill" );
 	}
 	else 
 	{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Usage: giveautokill <name|guid|clientnum|self>"; 
+		target thread kill_all_zombs_with_bullets();
+		target thread autokill_toggle();
 	}
+	result[ "cmdinfo" ] = "cmdinfo";
+	result[ "message" ] = "Toggled autokill for " + target.playername;
 	return result;
 }
 
@@ -248,10 +189,10 @@ cmd_autokill_f( arg_list )
 
 do_magic_bullets()
 {
+	self endon( "disconnect" );
 	zombies = GetAiSpeciesArray( "axis", "all" );
 	myeye = self getTagOrigin( "j_head" );
 	weap = self GetCurrentWeapon();
-
 	for ( i = 0; i < zombies.size; i++ )
 	{
 		zombie = zombies[i];
@@ -285,6 +226,10 @@ kill_all_zombs_with_bullets()
 	for ( ;; )
 	{
 		wait 0.05;
+		while ( self isThrowingGrenade() || isDefined( self.is_drinking ) && self.is_drinking > 0 || self isSwitchingWeapons() )
+		{
+			wait 0.05;
+		}
 		self thread do_magic_bullets();
 	}
 }

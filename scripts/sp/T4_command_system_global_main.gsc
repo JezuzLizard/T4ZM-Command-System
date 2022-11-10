@@ -30,19 +30,48 @@ main()
 	level.tcs_rank_moderator = "moderator";
 	level.tcs_rank_cheat = "cheat";
 	level.tcs_rank_host = "host";
+	level.tcs_rank_owner = "owner";
+	level.tcs_ranks = [];
+	level.tcs_ranks[ "none" ] = spawnStruct();
+	level.tcs_ranks[ "none" ].enum = 0;
+	level.tcs_ranks[ "none" ].cmdpower = 0;
+	level.tcs_ranks[ "user" ] = spawnStruct();
+	level.tcs_ranks[ "user" ].enum = 1;
+	level.tcs_ranks[ "user" ].cmdpower = 1;
+	level.tcs_ranks[ "trusted" ] = spawnStruct();
+	level.tcs_ranks[ "trusted" ].enum = 2;
+	level.tcs_ranks[ "trusted" ].cmdpower = 20;
+	level.tcs_ranks[ "elevated" ] = spawnStruct();
+	level.tcs_ranks[ "elevated" ].enum = 3;
+	level.tcs_ranks[ "elevated" ].cmdpower = 40;
+	level.tcs_ranks[ "moderator" ] = spawnStruct();
+	level.tcs_ranks[ "moderator" ].enum = 4;
+	level.tcs_ranks[ "moderator" ].cmdpower = 60;
+	level.tcs_ranks[ "cheat" ] = spawnStruct();
+	level.tcs_ranks[ "cheat" ].enum = 5;
+	level.tcs_ranks[ "cheat" ].cmdpower = 80;
+	level.tcs_ranks[ "host" ] = spawnStruct();
+	level.tcs_ranks[ "host" ].enum = 6;
+	level.tcs_ranks[ "host" ].cmdpower = 100;
 	level.fl_godmode = 1;
 	level.fl_demi_godmode = 2;
 	level.fl_notarget = 4;
 	level.clientdvars = [];
-	tokens = getDvarStringDefault( "tcs_cmd_tokens", "" ); //separated by spaces, good tokens are generally not used at the start of a normal message 
-	if ( tokens != "" )
+	tokens_str = getDvarStringDefault( "tcs_cmd_tokens", "" ); //separated by spaces, good tokens are generally not used at the start of a normal message 
+	if ( tokens_str != "" )
 	{
-		level.custom_commands_tokens = strTok( tokens, " " );
+		tokens = strTok( tokens_str, " " );
+		for ( i = 0; i < tokens.size; i++ )
+		{
+			level.custom_commands_tokens[ tokens[ i ] ] = tokens[ i ];
+		}
 	}
 	// "/" is always useable by default
 	scripts\sp\csm\_perms::cmd_init_perms();
 	level.tcs_add_server_command_func = ::cmd_addservercommand;
+	level.tcs_set_server_command_power_func = ::cmd_setservercommandcmdpower;
 	level.tcs_add_client_command_func = ::cmd_addclientcommand;
+	level.tcs_set_client_command_power_func = ::cmd_setclientcommandcmdpower;
 	level.tcs_remove_server_command = ::cmd_removeservercommand;
 	level.tcs_remove_client_command = ::cmd_removeclientcommand;
 	level.tcs_com_printf = scripts\sp\csm\_com::com_printf;
@@ -51,7 +80,7 @@ main()
 	level.tcs_check_cmd_collisions = ::check_for_command_alias_collisions;
 	level.server_commands = [];
 	cmd_addservercommand( "setcvar", "scv", "setcvar <name|guid|clientnum|self> <cvarname> <newval>", scripts\sp\csm\global_commands::CMD_SETCVAR_f, level.cmd_power_cheat, 2 );
-	cmd_addservercommand( "dvar", "dv", "dvar <dvarname> <newval>", scripts\sp\csm\global_commands::CMD_SERVER_DVAR_f, level.cmd_power_cheat, 2 );
+	cmd_addservercommand( "dvar", undefined, "dvar <dvarname> <newval>", scripts\sp\csm\global_commands::CMD_SERVER_DVAR_f, level.cmd_power_cheat, 2 );
 	cmd_addservercommand( "cvarall", "cva", "cvarall <cvarname> <newval>", scripts\sp\csm\global_commands::CMD_CVARALL_f, level.cmd_power_cheat, 2 );
 	cmd_addservercommand( "givegod", "ggd", "givegod <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVEGOD_f, level.cmd_power_cheat, 1 );
 	cmd_addservercommand( "givenotarget", "gnt", "givenotarget <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVENOTARGET_f, level.cmd_power_cheat, 1 );
@@ -68,24 +97,26 @@ main()
 	cmd_addservercommand( "changemap", "cm", "changemap <mapalias>", scripts\sp\csm\global_threaded_commands::CMD_CHANGEMAP_f, level.cmd_power_elevated_user, 1, true );
 	cmd_addservercommand( "setrotation", "setr", "setrotation <rotationdvar>", scripts\sp\csm\global_commands::CMD_SETROTATION_f, level.cmd_power_elevated_user, 1 );
 
-	cmd_addservercommand( "lock", "lk", "lock <password>", scripts\sp\csm\global_commands::CMD_LOCK_SERVER_f, level.cmd_power_elevated_user, 1 );
+	cmd_addservercommand( "lock", undefined, "lock <password>", scripts\sp\csm\global_commands::CMD_LOCK_SERVER_f, level.cmd_power_elevated_user, 1 );
 	cmd_addservercommand( "unlock", "ul", "unlock", scripts\sp\csm\global_commands::CMD_UNLOCK_SERVER_f, level.cmd_power_elevated_user, 0 );
 
 	cmd_addservercommand( "execonallplayers", "execonall exall", "execonallplayers <cmdname> [cmdargs] ...", scripts\sp\csm\global_commands::CMD_EXECONALLPLAYERS_f, level.cmd_power_host, 1 );
 
-	cmd_addservercommand( "cmdlist", "clist", "cmdlist", scripts\sp\csm\global_commands::CMD_CMDLIST_f, level.cmd_power_none, 0 );
+	cmd_addservercommand( "cmdlist", undefined, "cmdlist", scripts\sp\csm\global_commands::CMD_CMDLIST_f, level.cmd_power_none, 0 );
 	cmd_addservercommand( "playerlist", "plist", "playerlist", scripts\sp\csm\global_commands::CMD_PLAYERLIST_f, level.cmd_power_none, 0 );
 	cmd_addservercommand( "weaponlist", "wlist", "weaponlist", scripts\sp\csm\global_commands::cmd_weaponlist_f, level.cmd_power_none, 0 );
 
+	cmd_addservercommand( "help", undefined, "help [cmdname]", scripts\sp\csm\global_commands::cmd_help_f, level.cmd_power_none, 0 );
+
 	level.client_commands = [];
-	cmd_addclientcommand( "god", "god", "god", scripts\sp\csm\global_client_commands::CMD_GOD_f, level.cmd_power_cheat, 0 );
+	cmd_addclientcommand( "god", undefined, "god", scripts\sp\csm\global_client_commands::CMD_GOD_f, level.cmd_power_cheat, 0 );
 	cmd_addclientcommand( "notarget", "nt", "notarget", scripts\sp\csm\global_client_commands::CMD_NOTARGET_f, level.cmd_power_cheat, 0 );
 	cmd_addclientcommand( "invisible", "invis", "invisible", scripts\sp\csm\global_client_commands::CMD_INVISIBLE_f, level.cmd_power_cheat, 0 );
 	cmd_addclientcommand( "printorigin", "printorg por", "printorigin", scripts\sp\csm\global_client_commands::CMD_PRINTORIGIN_f, level.cmd_power_none, 0 );
 	cmd_addclientcommand( "printangles", "printang pan", "printangles", scripts\sp\csm\global_client_commands::CMD_PRINTANGLES_f, level.cmd_power_none, 0 );
 	cmd_addclientcommand( "bottomlessclip", "botclip bcl", "bottomlessclip", scripts\sp\csm\global_client_commands::CMD_BOTTOMLESSCLIP_f, level.cmd_power_cheat, 0 );
 	cmd_addclientcommand( "teleport", "tele", "teleport <name|guid|clientnum|origin>", scripts\sp\csm\global_client_commands::CMD_TELEPORT_f, level.cmd_power_cheat, 1 );
-	cmd_addclientcommand( "cvar", "cv", "cvar <cvarname> <newval>", scripts\sp\csm\global_client_commands::CMD_CVAR_f, level.cmd_power_cheat, 2 );
+	cmd_addclientcommand( "cvar", undefined, "cvar <cvarname> <newval>", scripts\sp\csm\global_client_commands::CMD_CVAR_f, level.cmd_power_cheat, 2 );
 	cmd_addclientcommand( "weapon", "wep", "weapon <weaponname|all>", scripts\sp\csm\global_client_commands::cmd_weapon_f, level.cmd_power_cheat, 1 );
 	cmd_addclientcommand( "movespeedscale", "mvsps mss", "movespeedscale <val>", scripts\sp\csm\global_client_commands::cmd_movespeedscale_f, level.cmd_power_cheat, 1 );
 	
@@ -177,7 +208,7 @@ command_buffer()
 				}
 				else 
 				{
-					player cmd_execute( cmdname, args, is_clientcmd, level.tcs_use_silent_commands, level.tcs_logprint_cmd_usage );
+					player cmd_execute( cmdname, args, is_clientcmd, false, level.tcs_logprint_cmd_usage );
 					player thread scripts\sp\csm\_perms::cmd_cooldown();
 				}
 			}
@@ -216,7 +247,7 @@ tcs_on_connect()
 			for ( i = 0; i < level.tcs_player_entries.size; i++ )
 			{
 				entry = level.tcs_player_entries[ i ];
-				player_in_server = find_player_in_server( entry.player_entry );
+				player_in_server = find_player_in_server( entry.player_entry, true );
 				if ( isDefined( player_in_server ) && player_in_server == player )
 				{
 					player.cmdpower_server = entry.cmdpower_server;

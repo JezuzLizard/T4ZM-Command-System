@@ -132,7 +132,7 @@ CMD_TELEPORT_f( arg_list )
 	}
 	else 
 	{
-		self setOrigin( self.origin + anglesToForward( self.angles ) * 64 + anglesToRight( self.angles ) * 64 );
+		self setOrigin( target.origin + anglesToForward( target.angles ) * 64 + anglesToRight( target.angles ) * 64 );
 		result[ "filter" ] = "cmdinfo";
 		result[ "message" ] = "Successfully teleported to " + target.playername + "'s position";
 	}
