@@ -466,3 +466,55 @@ cmd_help_f( arg_list )
 	}
 	return result;
 }
+
+cmd_dodamage_f( arg_list )
+{
+	result = [];
+	target = find_entity_in_server( arg_list[ 0 ], true );
+	setDvar( "floatstorage", arg_list[ 1 ] );
+	arg_as_float = getDvarFloat( "floatstorage" );
+	damage = arg_as_float;
+	pos = cast_str_to_vector( arg_list[ 2 ] );
+	attacker = find_entity_in_server( arg_list[ 3 ], true );
+	inflictor = find_entity_in_server( arg_list[ 4 ], true );
+	hitloc = arg_list[ 5 ];
+	mod = arg_list[ 6 ];
+	idflags = undefined;
+	if ( isDefined( arg_list[ 7 ] ) )
+	{
+		idflags = int( arg_list[ 7 ] );
+	}
+	weapon = arg_list[ 8 ];
+	switch ( arg_list.size )
+	{
+		case 3:
+			target dodamage( damage, pos );
+			break;
+		case 4:
+			target dodamage( damage, pos, attacker );
+			break;
+		case 5:
+			target dodamage( damage, pos, attacker, inflictor );
+			break;
+		case 6:
+			target dodamage( damage, pos, attacker, inflictor, hitloc );
+			break;
+		case 7:
+			target dodamage( damage, pos, attacker, inflictor, hitloc, mod );
+			break;
+		case 8:
+			target dodamage( damage, pos, attacker, inflictor, hitloc, mod, idflags );
+			break;
+		case 9:
+			target dodamage( damage, pos, attacker, inflictor, hitloc, mod, idflags, weapon );
+			break;
+		default:
+			result[ "filter" ] = "cmderror";
+			result[ "message" ] = "Too many parameters sent to cmd dodamage max is 9";
+			return result;
+	}
+
+	//result[ "filter" ] = "cmdinfo";
+	//result[ "message" ] = self.playername + " executes executes dodamage " + isPlayer( target ) ? target.playername : target.targetname + " for " + damage + " damage";
+	return result;
+}

@@ -23,7 +23,7 @@ cmd_init_perms()
 			}
 			else 
 			{
-				level scripts\sp\csm\_com::com_printf( "con|g_log", "permserror", "tcs_player_cmd_perms index " + index + " has (player_entry " + isDefined( player_entry_array[ 0 ] ) + "), (rank " + isDefined( player_entry_array[ 1 ] ) + "), (cmdpower_server " + isDefined( player_entry_array[ 2 ] ) + "), (cmdpower_client " + isDefined( player_entry_array[ 3 ] ) + ")" );
+				level scripts\sp\csm\_com::com_printf( "con|g_log", "permserror", "tcs_player_cmd_perms index " + index + " has (player_entry " + isDefined( player_entry_array[ 0 ] ) + "), (rank " + isDefined( player_entry_array[ 1 ] ) + "), (cmdpower " + isDefined( player_entry_array[ 2 ] ) + ")" );
 				level scripts\sp\csm\_com::com_printf( "con|g_log", "permserror", "Please check your tcs_player_cmd_perms dvar" );
 			}
 			index++;
@@ -41,7 +41,7 @@ add_player_perms_entry( player )
 	player_perm_list = getDvar( "tcs_player_cmd_perms" );
 	if ( player_perm_list != "" )
 	{
-		player_entry = player.playername + " " + player.tcs_rank + " " + player.cmdpower_server + " " + player.cmdpower_client;
+		player_entry = player.playername + " " + player.tcs_rank + " " + player.cmdpower;
 		if ( player_perm_list[ player_perm_list.size - 1 ] == "," )
 		{
 			player_perm_list = player_perm_list + player_entry;

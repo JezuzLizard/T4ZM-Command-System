@@ -140,6 +140,8 @@ main()
 
 	cmd_addservercommand( "unittest", undefined, "unittest [botcount]", scripts\sp\csm\_debug::cmd_unittest_validargs_f, "host", 0, false );
 
+	cmd_addservercommand( "dodamage", "dd", "dodamage <entitynum|targetname|self> <damage> <origin> [entitynum|targetname|self] [entitynum|targetname|self] [hitloc] [MOD] [idflags] [weapon]", scripts\sp\csm\global_commands::cmd_dodamage_f, "cheat", 3, false );
+
 	cmd_register_arg_types_for_server_cmd( "givegod", "player" );
 	cmd_register_arg_types_for_server_cmd( "givenotarget", "player" );
 	cmd_register_arg_types_for_server_cmd( "giveinvisible", "player" );

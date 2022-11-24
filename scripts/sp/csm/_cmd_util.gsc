@@ -1334,11 +1334,11 @@ arg_entity_handler( arg )
 
 arg_generate_rand_entity()
 {
-	randomint = randomInt( 3 );
+	randomint = randomInt( 2 );
 	entities = getEntArray();
 	
 	random_entity = undefined;
-	if ( randomint < 2 )
+	if ( randomint < 1 )
 	{
 		random_entity = entities[ randomInt( entities.size ) ];
 	}
@@ -1348,8 +1348,6 @@ arg_generate_rand_entity()
 		case 0:
 			return random_entity getEntityNumber();
 		case 1:
-			return random_entity.targetname;
-		case 2:
 			return "self";
 	}
 }
@@ -1388,7 +1386,7 @@ arg_generate_rand_idflags()
 	max_flags_to_add = randomInt( level.tcs_idflags.size );
 	for ( i = 0; i < max_flags_to_add; i++ )
 	{
-		random_flag_index = randomInt( idflags_array );
+		random_flag_index = randomInt( idflags_array.size );
 		flags |= idflags_array[ random_flag_index ];
 		new_array = [];
 		for ( j = 0; j < idflags_array.size; j++ )
