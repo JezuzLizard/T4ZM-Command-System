@@ -113,22 +113,10 @@ bottomless_clip()
 CMD_TELEPORT_f( arg_list )
 {
 	result = [];
-	target = undefined;
 	target = self find_player_in_server( arg_list[ 0 ] );
 	if ( !isDefined( target ) )
 	{
-		origin = cast_to_vector( arg_list[ 0 ] );
-		if ( origin.size == 3 )
-		{
-			self setOrigin( origin );
-			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "You have successfully teleported";
-		}
-		else 
-		{
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Invalid origin, format is (x,y,z)";
-		}
+		return result;
 	}
 	else 
 	{

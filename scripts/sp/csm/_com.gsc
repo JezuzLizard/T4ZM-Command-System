@@ -38,7 +38,7 @@ com_addfilter( filter, default_value )
 	}
 	if ( !isDefined( level.com_filters[ filter ] ) )
 	{
-		level.com_filters[ filter ] = getDvarIntDefault( "com_script_channel_" + filter, default_value );
+		level.com_filters[ filter ] = getDvarIntDefault( "com_script_filter_" + filter, default_value );
 	}
 }
 
@@ -105,6 +105,10 @@ com_logprint( message, players, arg_list )
 
 com_iprintln( message, player, arg_list )
 {
+	if ( is_true( level.doing_command_system_unittest ) )
+	{
+		return;
+	}
 	if ( isDefined( player ) && !is_true( player.is_server ) )
 	{
 		player iPrintLn( message );
@@ -113,6 +117,10 @@ com_iprintln( message, player, arg_list )
 
 com_iprintln_array( message, players, arg_list )
 {
+	if ( is_true( level.doing_command_system_unittest ) )
+	{
+		return;
+	}
 	if ( array_validate( players ) )
 	{
 		for ( i = 0; i < players.size; i++ )
@@ -124,14 +132,23 @@ com_iprintln_array( message, players, arg_list )
 
 com_iprintlnbold( message, players, arg_list )
 {
-	for ( i = 0; i < level.players.size; i++ )
+	if ( is_true( level.doing_command_system_unittest ) )
 	{
-		level.players[ i ] iPrintLnBold( message );
+		return;
+	}
+	players = getPlayers();
+	for ( i = 0; i < players.size; i++ )
+	{
+		players[ i ] iPrintLnBold( message );
 	}
 }
 
 com_tell( message, player, arg_list )
 {
+	if ( is_true( level.doing_command_system_unittest ) )
+	{
+		return;
+	}
 	if ( isDefined( player ) && !is_true( player.is_server ) )
 	{
 		cmdexec( "tell " + player getEntityNumber() + " " + message );
@@ -140,6 +157,10 @@ com_tell( message, player, arg_list )
 
 com_tell_array( message, players, arg_list )
 {
+	if ( is_true( level.doing_command_system_unittest ) )
+	{
+		return;
+	}
 	if ( array_validate( players ) )
 	{
 		for ( i = 0; i < players.size; i++ )
@@ -151,10 +172,14 @@ com_tell_array( message, players, arg_list )
 
 com_say( message, players, arg_list )
 {
+	if ( is_true( level.doing_command_system_unittest ) )
+	{
+		return;
+	}
 	cmdexec( "say " + message );
 }
 
-com_printf( channels, filter, message, players, arg_list )
+com_printf( channels, filter, message, players )
 {
 	if ( !isDefined( channels ) )
 	{
@@ -182,12 +207,12 @@ com_printf( channels, filter, message, players, arg_list )
 			{
 				message_color_code = "^8";
 			}
-			message = com_caps_msg_title( channel, filter ) + message_color_code + message;
+			message_modified = com_caps_msg_title( channel, filter ) + message_color_code + message;
 			if ( array_validate( players ) )
 			{
 				channel = channel + "_array";
 			}
-			[[ level.com_channels[ channel ] ]]( message, players, arg_list );
+			[[ level.com_channels[ channel ] ]]( message_modified, players );
 		}
 	}
 }
@@ -197,6 +222,10 @@ com_get_cmd_feedback_channel()
 	if ( is_true( self.is_server ) )
 	{
 		return "con";
+	}
+	else if ( is_true( level.doing_command_system_unittest ) )
+	{
+		return "g_log";
 	}
 	else 
 	{

@@ -115,11 +115,7 @@ CMD_CVARALL_f( arg_list )
 CMD_SETCVAR_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	dvar_name = arg_list[ 1 ];
 	dvar_value = arg_list[ 2 ];
 	target setClientDvar( dvar_name, dvar_value );
@@ -131,11 +127,7 @@ CMD_SETCVAR_f( arg_list )
 cmd_setmovespeedscale_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	setDvar( "floatstorage", arg_list[ 1 ] );
 	arg_as_float = getDvarFloat( "floatstorage" );
 	target setMoveSpeedScale( arg_as_float );
@@ -147,11 +139,7 @@ cmd_setmovespeedscale_f( arg_list )
 CMD_GIVEGOD_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	if ( !is_true( target.tcs_is_invulnerable ) )
 	{
 		target enableInvulnerability();
@@ -170,11 +158,7 @@ CMD_GIVEGOD_f( arg_list )
 CMD_GIVENOTARGET_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	target.ignoreme = !target.ignoreme;
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Toggled notarget for " + target.playername;
@@ -184,11 +168,7 @@ CMD_GIVENOTARGET_f( arg_list )
 CMD_GIVEINVISIBLE_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	if ( !is_true( target.tcs_is_invisible ) )
 	{
 		target hide();
@@ -207,11 +187,7 @@ CMD_GIVEINVISIBLE_f( arg_list )
 cmd_giveweapon_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	weapon = arg_list[ 1 ];
 	if ( weapon == "all" )
 	{
@@ -255,83 +231,24 @@ cmd_giveweapon_f( arg_list )
 CMD_SETRANK_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
-	if ( get_rank_valuefor_player( self ) < get_rank_valuefor_player( target ) )
+	target = arg_list[ 0 ];
+	if ( !is_true( self.is_server ) && self.cmdpower < target.cmdpower )
 	{
 		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Insufficient rank to set " + target.playername + "'s rank";
+		result[ "message" ] = "Insufficient cmdpower to set " + target.playername + "'s rank";
 		return result;
 	}
-	new_cmdpower_server = undefined;
-	new_cmdpower_client = undefined;
-	new_rank = undefined;
-	arg_rank = arg_list[ 1 ];
-	switch ( arg_rank )
-	{
-		case "none":
-			new_cmdpower_server = level.cmd_power_none;
-			new_cmdpower_client = level.cmd_power_none;
-			new_rank = level.tcs_rank_none;
-			break;
-		case "user":
-			new_cmdpower_server = level.cmd_power_user;
-			new_cmdpower_client = level.cmd_power_user;
-			new_rank = level.tcs_rank_user;
-			break;
-		case "trs":
-		case "trusted":
-			new_cmdpower_server = level.cmd_power_trusted_user;
-			new_cmdpower_client = level.cmd_power_trusted_user;
-			new_rank = level.tcs_rank_trusted_user;
-			break;
-		case "ele":
-		case "elevated":
-			new_cmdpower_server = level.cmd_power_elevated_user;
-			new_cmdpower_client = level.cmd_power_elevated_user;
-			new_rank = level.tcs_rank_elevated_user;
-			break;
-		case "mod":
-		case "moderator":
-			new_cmdpower_server = level.cmd_power_moderator;
-			new_cmdpower_client = level.cmd_power_moderator;
-			new_rank = level.tcs_rank_moderator;
-			break;
-		case "cht":
-		case "cheat":
-			new_cmdpower_server = level.cmd_power_cheat;
-			new_cmdpower_client = level.cmd_power_cheat;
-			new_rank = level.tcs_rank_cheat;
-			break;
-		case "host":
-		case "owner":
-			new_cmdpower_server = level.cmd_power_host;
-			new_cmdpower_client = level.cmd_power_host;
-			new_rank = level.tcs_rank_host;
-			break;
-		default:
-			break;
-	}
-	if ( !isDefined( new_rank ) )
+	new_rank = arg_list[ 1 ];
+	if ( !is_true( self.is_server ) && ( level.tcs_ranks[ new_rank ].cmdpower >= self.cmdpower ) && self.cmdpower < level.CMD_POWER_HOST )
 	{
 		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Invalid rank " + arg_list[ 1 ];
-		return result;
-	}
-	if ( get_rank_value_for_rank( new_rank ) > self get_rank_value() )
-	{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "You cannot set " + target.name + " to a rank higher than your own";
+		result[ "message" ] = "You cannot set " + target.playername + " to a rank higher than or equal to your own";
 		return result;
 	}
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Target's new rank is " + new_rank;
 	target.tcs_rank = new_rank;
-	target.cmdpower_server = new_cmdpower_server;
-	target.cmdpower_client = new_cmdpower_client;
+	target.cmdpower = level.tcs_ranks[ new_rank ].cmdpower;
 	scripts\sp\csm\_perms::add_player_perms_entry( target );
 	level scripts\sp\csm\_com::com_printf( target scripts\sp\csm\_com::com_get_cmd_feedback_channel(), "cmdinfo", "Your new rank is " + new_rank, target );
 	return result;
@@ -343,43 +260,39 @@ CMD_SETRANK_f( arg_list )
 CMD_EXECONALLPLAYERS_f( arg_list )
 {
 	result = [];
-	cmd_to_execute = get_client_cmd_from_alias( arg_list[ 0 ] );
+	cmd = arg_list[ 0 ];
+	cmd_to_execute = get_server_cmd_from_alias( cmd );
 	if ( cmd_to_execute != "" )
 	{
-		var_args = [];
-		for ( i = 1; i < arg_list.size; i++ )
-		{
-			var_args[ i - 1 ] = arg_list[ i ];
-		}
-		is_valid = self test_cmd_is_valid( cmd_to_execute, var_args, true );
-		if ( !is_valid )
-		{
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Insufficient num args sent to " + cmd_to_execute + " from execonallplayers";
-			return result;
-		}
-		players = getPlayers();
-		for ( i = 0; i < players.size; i++ )
-		{
-			players[ i ] thread cmd_execute( cmd_to_execute, var_args, true, false, true );
-		}
-		result[ "filter" ] = "cmdinfo";
-		result[ "message" ] = "Executed " + cmd_to_execute + " on all players";			
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "You cannot call a server cmd with execonallplayers";
+		return result;
 	}
-	else 
+	var_args = [];
+	for ( i = 1; i < arg_list.size; i++ )
 	{
-		cmd_to_execute = get_server_cmd_from_alias( arg_list[ 0 ] );
-		if ( cmd_to_execute != "" )
-		{
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "You cannot call a server cmd with execonallplayers";
-		}
-		else 
-		{
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Cmd alias " + arg_list[ 0 ] + " does not reference any cmd";
-		}
+		var_args[ i - 1 ] = arg_list[ i ];
 	}
+	is_valid = self test_cmd_is_valid( cmd_to_execute, var_args, true );
+	if ( !is_valid )
+	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "Insufficient num args sent to " + cmd_to_execute + " from execonallplayers";
+		return result;
+	}
+	players = getPlayers();
+	if ( players.size == 0 )
+	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "There are no players in the server";
+		return result;
+	}
+	for ( i = 0; i < players.size; i++ )
+	{
+		players[ i ] thread cmd_execute( cmd_to_execute, var_args, true, false, false );
+	}
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Executed " + cmd_to_execute + " on all players";			
 	return result;
 }
 
@@ -398,13 +311,13 @@ CMD_PLAYERLIST_f( arg_list )
 	}
 	for ( i = 0; i < players.size; i++ )
 	{
-		if ( get_rank_value_for_player( self ) >= 4 )
+		if ( is_true( self.is_server ) || self.cmdpower >= level.CMD_POWER_MODERATOR )
 		{
-			message = "^3" + players[ i ].playername + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
+			message = "^3" + players[ i ].playername + " " + players[ i ].tcs_rank + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
 		}
 		else 
 		{
-			message = "^3" + players[ i ].playername + " " + players[ i ] getEntityNumber();
+			message = "^3" + players[ i ].playername + " " + players[ i ].tcs_rank + " " + players[ i ] getEntityNumber();
 		}
 		level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
 	}

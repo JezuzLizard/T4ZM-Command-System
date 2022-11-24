@@ -148,3 +148,12 @@ weapon_is_upgrade( weapon )
 {
 	return isSubStr( weapon, "upgraded" );
 }
+
+finishPlayerDamageWrapper_override( eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, modelIndex, psOffsetTime )
+{
+	if ( is_true( level.doing_command_system_unittest ) )
+	{
+		return;
+	}
+	self finishPlayerDamage( eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, modelIndex, psOffsetTime ); 
+}

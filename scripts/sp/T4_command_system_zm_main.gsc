@@ -9,16 +9,34 @@ main()
 	{
 		wait 0.05;
 	}
-	cmd_addservercommand( "spectator", "spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, level.cmd_power_cheat, 1 );
-	cmd_addservercommand( "togglerespawn", "togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, level.cmd_power_cheat, 1 );
-	cmd_addservercommand( "killactors", "ka", "killactors", ::CMD_KILLACTORS_f, level.cmd_power_cheat, 0 );
-	cmd_addservercommand( "respawnspectators", "respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, level.cmd_power_cheat, 0 );
-	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::CMD_GIVEPOINTS_f, level.cmd_power_cheat, 2 );
-	cmd_addservercommand( "giveautokill", "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, level.cmd_power_cheat, 1 );
-	cmd_addclientcommand( "points", "pts", "points <amount>", ::CMD_POINTS_f, level.cmd_power_cheat, 1 );
-	cmd_addclientcommand( "autokill", "ak", "autokill", ::cmd_autokill_f, level.cmd_power_cheat, 0 );
+	cmd_addservercommand( "spectator", "spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, level.cmd_power_cheat, 1, false );
+	cmd_addservercommand( "togglerespawn", "togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, level.cmd_power_cheat, 1, false );
+	cmd_addservercommand( "killactors", "ka", "killactors", ::CMD_KILLACTORS_f, level.cmd_power_cheat, 0, false );
+	cmd_addservercommand( "respawnspectators", "respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, level.cmd_power_cheat, 0, false );
+	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::CMD_GIVEPOINTS_f, level.cmd_power_cheat, 2, false );
+	cmd_addservercommand( "giveautokill", "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, level.cmd_power_cheat, 1, true );
+
+	cmd_register_arg_types_for_server_cmd( "spectator", "player" );
+	cmd_register_arg_types_for_server_cmd( "togglerespawn", "player" );
+	cmd_register_arg_types_for_server_cmd( "givepoints", "player int" );
+
+	cmd_addclientcommand( "points", "pts", "points <amount>", ::CMD_POINTS_f, level.cmd_power_cheat, 1, false );
+	cmd_addclientcommand( "autokill", "ak", "autokill", ::cmd_autokill_f, level.cmd_power_cheat, 0, true );
+
+	cmd_register_arg_types_for_client_cmd( "points", "int" );
+
 	level thread check_for_command_alias_collisions();
+	level thread on_unittest_start();
 	level.zm_command_init_done = true;
+}
+
+on_unittest_start()
+{
+	while ( true )
+	{
+		level waittill( "unittest_start" );
+		replaceFunc( maps\_callbackglobal::finishPlayerDamageWrapper, ::finishPlayerDamageWrapper_override );
+	}
 }
 
 CMD_KILLACTORS_f( arg_list )
@@ -32,16 +50,7 @@ CMD_KILLACTORS_f( arg_list )
 
 kill_all_zombies()
 {
-	ais = getaiarray( "axis" );
-	for ( i = 0; i < ais.size; i++ )
-	{
-		zombie = ais[ i ];
-		if ( isdefined( zombie ) )
-		{
-			zombie dodamage( zombie.health + 100, (0,0,0) );
-		}
-	}
-	ais = getAiSpeciesArray( "axis", "dog" );
+	ais = getAiSpeciesArray( "axis", "all" );
 	for ( i = 0; i < ais.size; i++ )
 	{
 		zombie = ais[ i ];
@@ -55,11 +64,7 @@ kill_all_zombies()
 CMD_GIVEPOINTS_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	points = int( arg_list[ 1 ] );
 	target give_player_score( points );
 	result[ "filter" ] = "cmdinfo";
@@ -70,11 +75,7 @@ CMD_GIVEPOINTS_f( arg_list )
 CMD_SPECTATOR_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	target maps\_zombiemode::spawnspectator();
 	if ( !isDefined( target.tcs_original_respawn ) )
 	{
@@ -89,11 +90,7 @@ CMD_SPECTATOR_f( arg_list )
 CMD_TOGGLERESPAWN_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	currently_respawning = isDefined( target.spectator_respawn );
 	if ( !isDefined( target.tcs_original_respawn ) )
 	{
@@ -126,10 +123,10 @@ CMD_RESPAWNSPECTATORS_f( arg_list )
 			{
 				players[ i ].old_score = players[ i ].score;
 
+				players[ i ].score = 1500;
+				
 				if ( isDefined( level.spectator_respawn_custom_score ) )
 					players[ i ] [[ level.spectator_respawn_custom_score ]]();
-
-				players[ i ].score = 1500;
 			}
 		}
 	}
@@ -151,11 +148,7 @@ CMD_POINTS_f( arg_list )
 cmd_giveautokill_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
-	{
-		return result;
-	}
+	target = arg_list[ 0 ];
 	if ( is_true( target.autokill_active ) )
 	{
 		target notify( "toggle_autokill" );
