@@ -312,8 +312,8 @@ tcs_on_connect()
 	{
 		level waittill( "connected", player );
 
-		is_bot = is_true(player.pers[ "isBot"]);
-		if (is_true(level.doing_command_system_unittest) && is_bot)
+		is_bot = is_true( player.pers[ "isBot"] );
+		if ( is_true( level.doing_command_system_unittest ) && is_bot)
 		{
 			player thread scripts\sp\csm\_debug::activate_random_cmds();
 		}
