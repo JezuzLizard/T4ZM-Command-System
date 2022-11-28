@@ -289,7 +289,7 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 	}
 	for ( i = 0; i < players.size; i++ )
 	{
-		players[ i ] thread cmd_execute( cmd_to_execute, var_args, true, false, false );
+		players[ i ] thread cmd_execute_internal( cmd_to_execute, var_args, true, getDvarIntDefault( "tcs_silent_cmds", 0 ), false );
 	}
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Executed " + cmd_to_execute + " on all players";			

@@ -113,7 +113,7 @@ bottomless_clip()
 CMD_TELEPORT_f( arg_list )
 {
 	result = [];
-	target = self find_player_in_server( arg_list[ 0 ] );
+	target = self cast_str_to_player( arg_list[ 0 ] );
 	if ( !isDefined( target ) )
 	{
 		return result;
@@ -187,5 +187,29 @@ cmd_movespeedscale_f( arg_list )
 	self setMoveSpeedScale( arg_as_float );
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Set your movespeedscale to " + arg_as_float;
+	return result;
+}
+
+cmd_togglehud_f( arg_list )
+{
+	result = [];
+	self.tcs_hud_toggled = !is_true( self.tcs_hud_toggled );
+	message = cast_bool_to_str( self.tcs_hud_toggled, "off on" );
+	if ( self.tcs_hud_toggled )
+	{
+		self setClientDvar( "cg_drawhud", 0 );
+		level.chalk_hud1_old_alpha = level.chalk_hud1.alpha;
+		level.chalk_hud2_old_alpha = level.chalk_hud2.alpha;
+		level.chalk_hud1.alpha = 0;
+		level.chalk_hud2.alpha = 0;
+	}
+	else 
+	{
+		self setClientDvar( "cg_drawhud", 1 );
+		level.chalk_hud1.alpha = level.chalk_hud1_old_alpha;
+		level.chalk_hud2.alpha = level.chalk_hud2_old_alpha;
+	}
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Your hud is toggled " + message;
 	return result;
 }

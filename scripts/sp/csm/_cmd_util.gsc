@@ -87,7 +87,7 @@ server_safe_notify_thread( notify_name, index )
 	level notify( notify_name );
 }
 
-find_player_in_server( clientnum_guid_or_name, noprint )
+cast_str_to_player( clientnum_guid_or_name, noprint )
 {
 	if ( !isDefined( noprint ) )
 	{
@@ -802,25 +802,17 @@ cmd_register_arg_type_handlers( argtype, checker_func, rand_gen_func, error_mess
 	level.tcs_arg_type_handlers[ argtype ].error_message = error_message;
 }
 
-cmd_execute( cmdname, arg_list, is_clientcmd, silent, logprint )
+cmd_execute_internal( cmdname, arg_list, is_clientcmd, silent, logprint )
 {
 	original_arg_list = arg_list;
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	result = [];
-	if ( !test_cmd_is_valid( cmdname, arg_list, is_clientcmd ) )
+	if ( !self test_cmd_is_valid( cmdname, arg_list, is_clientcmd ) )
 	{
 		return;
 	}
 	if ( is_clientcmd )
 	{
-		if ( is_true( level.client_commands[ cmdname ].uses_player_validity_check ) )
-		{
-			if ( isDefined( level.tcs_player_is_valid_check ) && ![[ level.tcs_player_is_valid_check ]]( self ) )
-			{
-				level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You are not in a valid state for " + cmdname + " to work", self );
-				return;
-			}
-		}
 		if ( is_true( level.threaded_commands[ cmdname ] ) )
 		{
 			self thread [[ level.client_commands[ cmdname ].func ]]( arg_list );
@@ -835,7 +827,7 @@ cmd_execute( cmdname, arg_list, is_clientcmd, silent, logprint )
 	{
 		if ( is_true ( level.cmds_using_find_player[ cmdname ] ) )
 		{
-			arg_list[ 0 ] = self find_player_in_server( arg_list[ 0 ] );
+			arg_list[ 0 ] = self cast_str_to_player( arg_list[ 0 ] );
 			if ( !isDefined( arg_list[ 0 ] ) )
 			{
 				return;
@@ -866,9 +858,9 @@ cmd_execute( cmdname, arg_list, is_clientcmd, silent, logprint )
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( result[ "filter" ] != "cmderror" )
 	{
-		cmd_log = self.playername + " executed " + cmdname + " " + repackage_args( original_arg_list );
 		if ( is_true( logprint ) && !is_true( level.doing_command_system_unittest ) )
 		{
+			cmd_log = self.playername + " executed " + cmdname + " " + repackage_args( original_arg_list );
 			level scripts\sp\csm\_com::com_printf( "g_log", result[ "filter" ], cmd_log );
 		}
 		if ( isDefined( result[ "channels" ] ) )
@@ -1027,13 +1019,21 @@ test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
 			{
 				if ( isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ) )
 				{
-					if ( ![[ level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ]]( arg_list[ i ] ) )
+					if ( !level [[ level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ]]( arg_list[ i ] ) )
 					{
 						arg_num = i;
 						level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Arg " +  arg_num + " " + arg_list[ i ] + " is " + level.tcs_arg_type_handlers[ argtypes[ i ] ].error_message, self );
 						return false;
 					}
 				}
+			}
+		}
+		if ( is_true( level.client_commands[ cmdname ].uses_player_validity_check ) )
+		{
+			if ( isDefined( level.tcs_player_is_valid_check ) && !level [[ level.tcs_player_is_valid_check ]]( self ) )
+			{
+				level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You are not in a valid state for " + cmdname + " to work", self );
+				return false;
 			}
 		}
 	}
@@ -1051,7 +1051,7 @@ test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
 			{
 				if ( isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ) )
 				{
-					if ( ![[ level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ]]( arg_list[ i ] ) )
+					if ( !level [[ level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ]]( arg_list[ i ] ) )
 					{
 						arg_num = i;
 						level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Arg " +  arg_num + " " + arg_list[ i ] + " is " + level.tcs_arg_type_handlers[ argtypes[ i ] ].error_message, self );
@@ -1127,7 +1127,7 @@ build_idflags_array()
 
 arg_player_handler( arg )
 {
-	return isDefined( self find_player_in_server( arg ) ); 
+	return isDefined( self cast_str_to_player( arg ) ); 
 }
 
 arg_generate_rand_player()
@@ -1196,6 +1196,17 @@ arg_generate_rand_float()
 	{
 		return randomFloat( 1000000 ) * -1;
 	}
+}
+
+arg_wholefloat_handler( arg )
+{
+	arg_as_float = getDvarFloat( "wholefloat_arg_storage", )
+	return ( is_str_float( arg ) || is_str_int( arg ) ) && float( arg ) > 0.0;
+}
+
+arg_generate_rand_wholefloat()
+{
+	return randomFloat( 1000000 );
 }
 
 arg_vector_handler( arg )
@@ -1284,7 +1295,7 @@ arg_generate_rand_cmdalias()
 		}
 	}
 	blacklisted_cmds_server1 = array2( "rotate", "restart", "changemap", "unittest", "unittestinvalidargs", "setcvar", "dvar", "cvarall", "spectator", "execonallplayers" );
-	blacklisted_cmds_server2 = array2( "setrotation", "resetrotation", "nextmap" );
+	blacklisted_cmds_server2 = array2( "setrotation", "resetrotation", "nextmap", "testcmd" );
 	for ( i = 0; i < server_command_keys.size; i++ )
 	{
 		cmd_is_blacklisted = false;

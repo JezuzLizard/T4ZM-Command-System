@@ -9,19 +9,20 @@ main()
 	{
 		wait 0.05;
 	}
-	cmd_addservercommand( "spectator", "spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, level.cmd_power_cheat, 1, false );
-	cmd_addservercommand( "togglerespawn", "togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, level.cmd_power_cheat, 1, false );
-	cmd_addservercommand( "killactors", "ka", "killactors", ::CMD_KILLACTORS_f, level.cmd_power_cheat, 0, false );
-	cmd_addservercommand( "respawnspectators", "respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, level.cmd_power_cheat, 0, false );
-	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::CMD_GIVEPOINTS_f, level.cmd_power_cheat, 2, false );
-	cmd_addservercommand( "giveautokill", "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, level.cmd_power_cheat, 1, true );
+	cmd_addservercommand( "spectator", "spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, "cheat", 1, false );
+	cmd_addservercommand( "togglerespawn", "togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, "cheat", 1, false );
+	cmd_addservercommand( "killactors", "ka", "killactors", ::CMD_KILLACTORS_f, "cheat", 0, false );
+	cmd_addservercommand( "respawnspectators", "respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, "cheat", 0, false );
+	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::CMD_GIVEPOINTS_f, "cheat", 2, false );
+	cmd_addservercommand( "giveautokill", "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, "cheat", 1, true );
+	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::cmd_givepoints_f, 2, false );
 
 	cmd_register_arg_types_for_server_cmd( "spectator", "player" );
 	cmd_register_arg_types_for_server_cmd( "togglerespawn", "player" );
 	cmd_register_arg_types_for_server_cmd( "givepoints", "player int" );
 
-	cmd_addclientcommand( "points", "pts", "points <amount>", ::CMD_POINTS_f, level.cmd_power_cheat, 1, false );
-	cmd_addclientcommand( "autokill", "ak", "autokill", ::cmd_autokill_f, level.cmd_power_cheat, 0, true );
+	cmd_addclientcommand( "points", "pts", "points <amount>", ::CMD_POINTS_f, "cheat", 1, false );
+	cmd_addclientcommand( "autokill", "ak", "autokill", ::cmd_autokill_f, "cheat", 0, true );
 
 	cmd_register_arg_types_for_client_cmd( "points", "int" );
 
@@ -135,16 +136,6 @@ CMD_RESPAWNSPECTATORS_f( arg_list )
 	return result;
 }
 
-CMD_POINTS_f( arg_list )
-{
-	result = [];
-	points = int( arg_list[ 0 ] );
-	self give_player_score( points );
-	result[ "filter" ] = "cmdinfo";
-	result[ "message" ] = "Gave you " + points + " points";
-	return result;
-}
-
 cmd_giveautokill_f( arg_list )
 {
 	result = [];
@@ -160,6 +151,27 @@ cmd_giveautokill_f( arg_list )
 	}
 	result[ "cmdinfo" ] = "cmdinfo";
 	result[ "message" ] = "Toggled autokill for " + target.playername;
+	return result;
+}
+
+cmd_givepoints_f( arg_list )
+{
+	result = [];
+	target = arg_list[ 0 ];
+	points = int( arg_list[ 1 ] );
+	target give_player_score( points );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Gave " + target.name + " " + points + " points";
+	return result;	
+}
+
+CMD_POINTS_f( arg_list )
+{
+	result = [];
+	points = int( arg_list[ 0 ] );
+	self give_player_score( points );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Gave you " + points + " points";
 	return result;
 }
 

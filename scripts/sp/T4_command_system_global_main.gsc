@@ -12,8 +12,6 @@ main()
 	level.custom_commands_restart_countdown = 10;
 	level.commands_total = 0;
 	level.custom_commands_cooldown_time = getDvarIntDefault( "tcs_cmd_cd", 5 );
-	level.tcs_use_silent_commands = getDvarIntDefault( "tcs_silent_cmds", 0 );
-	level.tcs_logprint_cmd_usage = getDvarIntDefault( "tcs_logprint_cmd_usage", 1 );
 	level.cmd_power_none = 0;
 	level.cmd_power_user = 1;
 	level.cmd_power_trusted_user = 20;
@@ -73,7 +71,7 @@ main()
 			if ( disallowedcmds_dvar != "" )
 				level.tcs_ranks[ rank ].disallowedcmds = strTok( disallowedcmds_dvar, " " );
 			else 
-			level.tcs_ranks[ rank ].disallowedcmds = undefined;
+				level.tcs_ranks[ rank ].disallowedcmds = undefined;
 			level.tcs_ranks[ rank ].cmdpower = cmdpower_dvar;
 		}
 	}
@@ -138,7 +136,8 @@ main()
 
 	cmd_addservercommand( "help", undefined, "help [cmdname]", scripts\sp\csm\global_commands::cmd_help_f, "none", 0, false );
 
-	cmd_addservercommand( "unittest", undefined, "unittest [botcount]", scripts\sp\csm\_debug::cmd_unittest_validargs_f, "host", 0, false );
+	cmd_addservercommand( "unittest", undefined, "unittest [botcount] [duration]", scripts\sp\csm\_debug::cmd_unittest_validargs_f, "host", 0, false );
+	cmd_addservercommand( "testcmd", undefined, "testcmd <cmdalias> [threadcount] [duration]", scripts\sp\csm\_debug::cmd_testcmd_f, "host", 1, false );
 
 	cmd_addservercommand( "dodamage", "dd", "dodamage <entitynum|targetname|self> <damage> <origin> [entitynum|targetname|self] [entitynum|targetname|self] [hitloc] [MOD] [idflags] [weapon]", scripts\sp\csm\global_commands::cmd_dodamage_f, "cheat", 3, false );
 
@@ -146,11 +145,13 @@ main()
 	cmd_register_arg_types_for_server_cmd( "givenotarget", "player" );
 	cmd_register_arg_types_for_server_cmd( "giveinvisible", "player" );
 	cmd_register_arg_types_for_server_cmd( "setrank", "player rank" );
+	cmd_register_arg_types_for_server_cmd( "setmovespeedscale", "player wholefloat" );
 	cmd_register_arg_types_for_server_cmd( "execonallplayers", "cmdalias" );
 	cmd_register_arg_types_for_server_cmd( "execonteam", "team cmdalias" );
 	cmd_register_arg_types_for_server_cmd( "playerlist", "team" );
 	cmd_register_arg_types_for_server_cmd( "help", "cmdalias" );
 	cmd_register_arg_types_for_server_cmd( "unittest", "int" );
+	cmd_register_arg_types_for_server_cmd( "testcmd", "cmdalias wholenum wholenum" );
 	cmd_register_arg_types_for_server_cmd( "dodamage", "entity float vector entity entity hitloc MOD idflags weapon" );
 
 
@@ -161,17 +162,20 @@ main()
 	cmd_addclientcommand( "printorigin", "printorg por", "printorigin", scripts\sp\csm\global_client_commands::CMD_PRINTORIGIN_f, "none", 0, false );
 	cmd_addclientcommand( "printangles", "printang pan", "printangles", scripts\sp\csm\global_client_commands::CMD_PRINTANGLES_f, "none", 0, false );
 	cmd_addclientcommand( "bottomlessclip", "botclip bcl", "bottomlessclip", scripts\sp\csm\global_client_commands::CMD_BOTTOMLESSCLIP_f, "cheat", 0, true );
-	cmd_addclientcommand( "teleport", "tele", "teleport <name|guid|clientnum|origin>", scripts\sp\csm\global_client_commands::CMD_TELEPORT_f, "cheat", 1, false );
+	cmd_addclientcommand( "teleport", "tele", "teleport <name|guid|clientnum>", scripts\sp\csm\global_client_commands::CMD_TELEPORT_f, "cheat", 1, false );
 	cmd_addclientcommand( "cvar", undefined, "cvar <cvarname> <newval>", scripts\sp\csm\global_client_commands::CMD_CVAR_f, "cheat", 2, false );
 	cmd_addclientcommand( "weapon", "wep", "weapon <weaponname|all>", scripts\sp\csm\global_client_commands::cmd_weapon_f, "cheat", 1, true );
 	cmd_addclientcommand( "movespeedscale", "mvsps mss", "movespeedscale <val>", scripts\sp\csm\global_client_commands::cmd_movespeedscale_f, "cheat", 1, true );
+	cmd_addclientcommand( "togglehud", "toghud", "togglehud", scripts\sp\csm\global_client_commands::cmd_togglehud_f, "none", 0, false );
 
 	cmd_register_arg_types_for_client_cmd( "teleport", "player" );
+	cmd_register_arg_types_for_client_cmd( "movespeedscale", "wholefloat" );
 
 	cmd_register_arg_type_handlers( "player", ::arg_player_handler, ::arg_generate_rand_player, "not a valid player" );
 	cmd_register_arg_type_handlers( "wholenum", ::arg_wholenum_handler, ::arg_generate_rand_wholenum, "not a whole number" );
 	cmd_register_arg_type_handlers( "int", ::arg_int_handler, ::arg_generate_rand_int, "not an int" );
 	cmd_register_arg_type_handlers( "float", ::arg_float_handler, ::arg_generate_rand_float, "not a float" );
+	cmd_register_arg_type_handlers( "wholefloat", ::arg_wholefloat_handler, ::arg_generate_rand_wholefloat, "not a positive float" );
 	cmd_register_arg_type_handlers( "vector", ::arg_vector_handler, ::arg_generate_rand_vector, "not a valid vector, format is float,float,float" );
 	cmd_register_arg_type_handlers( "cmdalias", ::arg_cmdalias_handler, ::arg_generate_rand_cmdalias, "not a valid cmdalias" );
 	cmd_register_arg_type_handlers( "rank", ::arg_rank_handler, ::arg_generate_rand_rank, "not a valid rank" );
@@ -222,14 +226,20 @@ scr_dvar_command_watcher()
 	setDvar( "tcscmd", "" ); // Initialize our dvar for sending commands from the server console. 
 	while ( true )
 	{
-		dvar_value = getDvar( "tcscmd" );
-		if ( dvar_value != "" )
-		{
-			level notify( "say", dvar_value, undefined, false );
-			setDvar( "tcscmd", "" );
-		}
+		parse_command_dvar();
 		wait 0.05;
 	}
+}
+
+parse_command_dvar()
+{
+	dvar_value = getDvar( "tcscmd" );
+	if ( dvar_value != "" )
+	{
+		level notify( "say", dvar_value, undefined, false );
+		setDvar( "tcscmd", "" );
+	}
+	dvar_value = undefined;
 }
 
 command_buffer()
@@ -238,61 +248,66 @@ command_buffer()
 	while ( true )
 	{
 		level waittill( "say", message, player, isHidden );
-		if ( isDefined( player ) && !isHidden && !is_command_token( message[ 0 ] ) )
+		level cmd_execute( message, player, is_hidden );
+	}
+}
+
+cmd_execute( message, player, is_hidden )
+{
+	if ( isDefined( player ) && !isHidden && !is_command_token( message[ 0 ] ) )
+	{
+		return;
+	}
+	if ( !isDefined( player ) )
+	{
+		if ( isDedicated() )
 		{
-			continue;
+			player = level.server;
 		}
-		if ( !isDefined( player ) )
+		else 
 		{
-			if ( isDedicated() )
+			player = level.host;
+		}
+	}
+	channel = player scripts\sp\csm\_com::com_get_cmd_feedback_channel();
+	if ( isDefined( player.cmd_cooldown ) && player.cmd_cooldown > 0 )
+	{
+		level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You cannot use another command for " + player.cmd_cooldown + " seconds", player );
+		return;
+	}
+	message = toLower( message );
+	multi_cmds = parse_cmd_message( message );
+	if ( multi_cmds.size < 1 )
+	{
+		level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Invalid command", player );
+		return;
+	}
+	if ( multi_cmds.size > 1 && !player scripts\sp\csm\_perms::can_use_multi_cmds() )
+	{
+		temp_array_index = multi_cmds[ 0 ];
+		multi_cmds = [];
+		multi_cmds[ 0 ] = temp_array_index;
+		level scripts\sp\csm\_com::com_printf( channel, "cmdwarning", "You do not have permission to use multi cmds; only executing the first cmd" );
+	}
+	for ( cmd_index = 0; cmd_index < multi_cmds.size; cmd_index++ )
+	{
+		cmdname = multi_cmds[ cmd_index ][ "cmdname" ];
+		args = multi_cmds[ cmd_index ][ "args" ];
+		is_clientcmd = multi_cmds[ cmd_index ][ "is_clientcmd" ];
+		if ( !player scripts\sp\csm\_perms::has_permission_for_cmd( cmdname, is_clientcmd ) )
+		{
+			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You do not have permission to use " + cmdname + " command", player );
+		}
+		else
+		{
+			if ( is_clientcmd && is_true( player.is_server ) )
 			{
-				player = level.server;
+				level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You cannot use " + cmdname + " client command as the server", player );
 			}
 			else 
 			{
-				player = level.host;
-			}
-		}
-		channel = player scripts\sp\csm\_com::com_get_cmd_feedback_channel();
-		if ( isDefined( player.cmd_cooldown ) && player.cmd_cooldown > 0 )
-		{
-			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You cannot use another command for " + player.cmd_cooldown + " seconds", player );
-			continue;
-		}
-		message = toLower( message );
-		multi_cmds = parse_cmd_message( message );
-		if ( multi_cmds.size < 1 )
-		{
-			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Invalid command", self );
-			continue;
-		}
-		if ( multi_cmds.size > 1 && !player scripts\sp\csm\_perms::can_use_multi_cmds() )
-		{
-			temp_array_index = multi_cmds[ 0 ];
-			multi_cmds = [];
-			multi_cmds[ 0 ] = temp_array_index;
-			level scripts\sp\csm\_com::com_printf( channel, "cmdwarning", "You do not have permission to use multi cmds; only executing the first cmd" );
-		}
-		for ( cmd_index = 0; cmd_index < multi_cmds.size; cmd_index++ )
-		{
-			cmdname = multi_cmds[ cmd_index ][ "cmdname" ];
-			args = multi_cmds[ cmd_index ][ "args" ];
-			is_clientcmd = multi_cmds[ cmd_index ][ "is_clientcmd" ];
-			if ( !player scripts\sp\csm\_perms::has_permission_for_cmd( cmdname, is_clientcmd ) )
-			{
-				level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You do not have permission to use " + cmdname + " command", player );
-			}
-			else
-			{
-				if ( is_clientcmd && is_true( player.is_server ) )
-				{
-					level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You cannot use " + cmdname + " client command as the server", player );
-				}
-				else 
-				{
-					player cmd_execute( cmdname, args, is_clientcmd, false, level.tcs_logprint_cmd_usage );
-					player thread scripts\sp\csm\_perms::cmd_cooldown();
-				}
+				player cmd_execute_internal( cmdname, args, is_clientcmd, getDvarIntDefault( "tcs_silent_cmds", 0 ), getDvarIntDefault( "tcs_logprint_cmd_usage", 1 ) );
+				player thread scripts\sp\csm\_perms::cmd_cooldown();
 			}
 		}
 	}
@@ -311,49 +326,60 @@ tcs_on_connect()
 	while ( true )
 	{
 		level waittill( "connected", player );
+		player on_connect_internal();
+	}
+}
 
-		is_bot = is_true( player.pers[ "isBot"] );
-		if ( is_true( level.doing_command_system_unittest ) && is_bot)
+on_connect_internal()
+{
+	is_bot = is_true( self.pers[ "isBot"] );
+	if ( is_bot )
+	{
+		if ( is_true( level.doing_command_system_testcmd ) )
 		{
-			player thread scripts\sp\csm\_debug::activate_random_cmds();
+			self thread scripts\sp\csm\_debug::activate_specific_cmd();
 		}
-		for ( i = 0; i < level.clientdvars.size; i++ )
+		else if ( is_true( level.doing_command_system_unittest ) )
 		{
-			dvar = level.clientdvars[ i ];
-			player thread setClientDvarThread( dvar[ "name" ], dvar[ "value" ], i );
+			self thread scripts\sp\csm\_debug::activate_random_cmds();
 		}
-		found_entry = false;
-		if ( player isHost() )
+	}
+	for ( i = 0; i < level.clientdvars.size; i++ )
+	{
+		dvar = level.clientdvars[ i ];
+		self thread setClientDvarThread( dvar[ "name" ], dvar[ "value" ], i );
+	}
+	found_entry = false;
+	if ( self isHost() )
+	{
+		self.cmdpower = level.CMD_POWER_HOST;
+		self.tcs_rank = level.TCS_RANK_HOST;
+		level.host = self;
+		found_entry = true;
+	}
+	else if ( array_validate( level.tcs_player_entries ) )
+	{
+		for ( i = 0; i < level.tcs_player_entries.size; i++ )
 		{
-			player.cmdpower = level.CMD_POWER_HOST;
-			player.tcs_rank = level.TCS_RANK_HOST;
-			level.host = player;
-			found_entry = true;
-		}
-		else if ( array_validate( level.tcs_player_entries ) )
-		{
-			for ( i = 0; i < level.tcs_player_entries.size; i++ )
+			entry = level.tcs_player_entries[ i ];
+			player_in_server = level.server cast_str_to_player( entry.player_entry, true );
+			if ( isDefined( player_in_server ) && player_in_server == self )
 			{
-				entry = level.tcs_player_entries[ i ];
-				player_in_server = level.server find_player_in_server( entry.player_entry, true );
-				if ( isDefined( player_in_server ) && player_in_server == player )
-				{
-					player.cmdpower = entry.cmdpower;
-					player.tcs_rank = entry.rank;
-					found_entry = true;
-				}
+				self.cmdpower = entry.cmdpower;
+				self.tcs_rank = entry.rank;
+				found_entry = true;
 			}
 		}
-		if ( !is_true( found_entry ) )
-		{
-			player.cmdpower = getDvarIntDefault( "tcs_cmdpower_default", level.CMD_POWER_USER );
-			player.tcs_rank = getDvarStringDefault( "tcs_default_rank", level.TCS_RANK_USER );
-		}
-		player._connected = true;
-		is_bot = undefined;
-		dvar = undefined;
-		found_entry = undefined;
-		entry = undefined;
-		player_in_server = undefined;
 	}
+	if ( !is_true( found_entry ) )
+	{
+		self.cmdpower = getDvarIntDefault( "tcs_cmdpower_default", level.CMD_POWER_USER );
+		self.tcs_rank = getDvarStringDefault( "tcs_default_rank", level.TCS_RANK_USER );
+	}
+	self._connected = true;
+	is_bot = undefined;
+	dvar = undefined;
+	found_entry = undefined;
+	entry = undefined;
+	player_in_server = undefined;
 }
