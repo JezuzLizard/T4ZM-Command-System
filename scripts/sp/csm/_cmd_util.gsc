@@ -368,10 +368,6 @@ is_natural_num(str)
 
 is_str_float( str )
 {
-	if ( !is_str_int( str ) )
-	{
-		return false;
-	}
 	numbers = [];
 	for ( i = 0; i < 10; i++ )
 	{

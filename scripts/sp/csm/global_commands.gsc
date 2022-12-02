@@ -518,3 +518,72 @@ cmd_dodamage_f( arg_list )
 	//result[ "message" ] = self.playername + " executes executes dodamage " + isPlayer( target ) ? target.playername : target.targetname + " for " + damage + " damage";
 	return result;
 }
+
+CMD_PAUSE_f( arg_list )
+{
+	result = [];
+	if ( isDefined( arg_list[ 0 ] ) )
+	{
+		duration = arg_list[ 0 ];
+		level thread game_pause( duration );
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Game paused for " + duration + " minutes";
+	}
+	else 
+	{
+		level thread game_pause( -1 );
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Game paused indefinitely use /unpause to end the pause";
+	}
+	return result;
+}
+
+game_pause( duration )
+{
+	setDvar( "ai_disablespawn", 1 );
+	setDvar( "g_ai", 0 );
+	foreach ( player in level.players )
+	{
+		player enableInvulnerability();
+		player.tcs_is_invulnerable = true;
+	}
+	level thread unpause_after_time( duration );
+}
+
+unpause_after_time( duration )
+{
+	if ( duration < 0 )
+	{
+		return;
+	}
+	level notify( "unpause_countdown" );
+	level endon( "unpause_countdown" );
+	level endon( "game_unpaused" );
+	duration_seconds = duration * 60;
+	for ( ; duration_seconds > 0; duration_seconds-- )
+	{
+		wait 1;
+	}
+	game_unpause();
+}
+
+CMD_UNPAUSE_f( arg_list )
+{
+	result = [];
+	game_unpause();
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Game unpaused";
+	return result;
+}
+
+game_unpause()
+{
+	level notify( "game_unpaused" );
+	setDvar( "ai_disablespawn", 1 );
+	setDvar( "g_ai", 0 );
+	foreach ( player in level.players )
+	{
+		player disableInvulnerability();
+		player.tcs_is_invulnerable = false;
+	}
+}

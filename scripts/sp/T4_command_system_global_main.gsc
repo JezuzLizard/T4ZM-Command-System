@@ -136,10 +136,13 @@ main()
 
 	cmd_addservercommand( "help", undefined, "help [cmdname]", scripts\sp\csm\global_commands::cmd_help_f, "none", 0, false );
 
-	cmd_addservercommand( "unittest", undefined, "unittest [botcount] [duration]", scripts\sp\csm\_debug::cmd_unittest_validargs_f, "host", 0, false );
-	cmd_addservercommand( "testcmd", undefined, "testcmd <cmdalias> [threadcount] [duration]", scripts\sp\csm\_debug::cmd_testcmd_f, "host", 1, false );
+	cmd_addservercommand( "unittest", undefined, "unittest [botcount] [minutes]", scripts\sp\csm\_debug::cmd_unittest_validargs_f, "host", 0, false );
+	cmd_addservercommand( "testcmd", undefined, "testcmd <cmdalias> [threadcount] [minutes]", scripts\sp\csm\_debug::cmd_testcmd_f, "host", 1, false );
 
 	cmd_addservercommand( "dodamage", "dd", "dodamage <entitynum|targetname|self> <damage> <origin> [entitynum|targetname|self] [entitynum|targetname|self] [hitloc] [MOD] [idflags] [weapon]", scripts\sp\csm\global_commands::cmd_dodamage_f, "cheat", 3, false );
+
+	cmd_addservercommand( "pause", "pa", "pause [minutes]", ::cmd_pause_f, "cheat", 0, false );
+	cmd_addservercommand( "unpause", "up", "unpause", ::cmd_unpause_f, "cheat", 0, false );
 
 	cmd_register_arg_types_for_server_cmd( "givegod", "player" );
 	cmd_register_arg_types_for_server_cmd( "givenotarget", "player" );
