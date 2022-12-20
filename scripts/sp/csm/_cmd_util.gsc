@@ -74,8 +74,7 @@ cast_to_vector( vector_string )
 	vector_array = [];
 	for ( i = 0; i < keys.size; i++ )
 	{
-		setDvar( "float", keys[ i ] );
-		vector_array[ i ] = getDvarFloat( "float" ); 
+		vector_array[ i ] = cast_str_to_float( keys[ i ] );
 	}
 	vector = ( vector_array[ 0 ], vector_array[ 1 ], vector_array[ 2 ] );
 	return vector;
@@ -411,6 +410,12 @@ is_str_float( str )
 	return true;
 }
 
+cast_str_to_float( str )
+{
+	setDvar( "floatstorage", str );
+	return getDvarFloat( "floatstorage" );	
+}
+
 cast_str_to_vector( str )
 {
 	floats = strTok( str, "," );
@@ -426,12 +431,9 @@ cast_str_to_vector( str )
 		}
 	}
 	vec = [];
-	setDvar( "floatstorage", floats[ 0 ] );
-	vec[ 0 ] = getDvarFloat( "floatstorage" );
-	setDvar( "floatstorage", floats[ 1 ] );
-	vec[ 1 ] = getDvarFloat( "floatstorage" );
-	setDvar( "floatstorage", floats[ 2 ] );
-	vec[ 2 ] = getDvarFloat( "floatstorage" );
+	vec[ 0 ] = cast_str_to_float( floats[ 0 ] );
+	vec[ 1 ] = cast_str_to_float( floats[ 1 ] );
+	vec[ 2 ] = cast_str_to_float( floats[ 2 ] );
 	return ( vec[ 0 ], vec[ 1 ], vec[ 2 ] );
 }
 
@@ -1011,7 +1013,7 @@ test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
 		if ( isDefined( level.client_commands[ cmdname ].argtypes ) && arg_list.size > 0 )
 		{
 			argtypes = level.client_commands[ cmdname ].argtypes;
-			for ( i = 0; i < argtypes.size; i++ )
+			for ( i = 0; i < arg_list.size; i++ )
 			{
 				if ( isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ) )
 				{
@@ -1043,7 +1045,7 @@ test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
 		if ( isDefined( level.server_commands[ cmdname ].argtypes ) && arg_list.size > 0 )
 		{
 			argtypes = level.server_commands[ cmdname ].argtypes;
-			for ( i = 0; i < argtypes.size; i++ )
+			for ( i = 0; i < arg_list.size; i++ )
 			{
 				if ( isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ].checker_func ) )
 				{
@@ -1196,8 +1198,7 @@ arg_generate_rand_float()
 
 arg_wholefloat_handler( arg )
 {
-	arg_as_float = getDvarFloat( "wholefloat_arg_storage", )
-	return ( is_str_float( arg ) || is_str_int( arg ) ) && float( arg ) > 0.0;
+	return ( is_str_float( arg ) || is_str_int( arg ) ) && cast_str_to_float( arg ) > 0.0;
 }
 
 arg_generate_rand_wholefloat()

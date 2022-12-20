@@ -129,7 +129,7 @@ cmd_setmovespeedscale_f( arg_list )
 	result = [];
 	target = arg_list[ 0 ];
 	setDvar( "floatstorage", arg_list[ 1 ] );
-	arg_as_float = getDvarFloat( "floatstorage" );
+	arg_as_float = cast_str_to_float( arg_list[ 1 ] );
 	target setMoveSpeedScale( arg_as_float );
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Set movespeedscale for " + target.playername + " to " + arg_as_float;
@@ -268,6 +268,13 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 		result[ "message" ] = "You cannot call a server cmd with execonallplayers";
 		return result;
 	}
+	cmd_to_execute = get_client_cmd_from_alias( cmd );
+	if ( cmd_to_execute == "" )
+	{{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "Invalid client cmd";
+		return result;
+	}}
 	var_args = [];
 	for ( i = 1; i < arg_list.size; i++ )
 	{
@@ -471,8 +478,7 @@ cmd_dodamage_f( arg_list )
 {
 	result = [];
 	target = find_entity_in_server( arg_list[ 0 ], true );
-	setDvar( "floatstorage", arg_list[ 1 ] );
-	arg_as_float = getDvarFloat( "floatstorage" );
+	arg_as_float = int( arg_list[ 1 ] );
 	damage = arg_as_float;
 	pos = cast_str_to_vector( arg_list[ 2 ] );
 	attacker = find_entity_in_server( arg_list[ 3 ], true );
@@ -542,8 +548,10 @@ game_pause( duration )
 {
 	setDvar( "ai_disablespawn", 1 );
 	setDvar( "g_ai", 0 );
-	foreach ( player in level.players )
+	players = getPlayers();
+	for ( i = 0; i < players.size; i++ )
 	{
+		player = players[ i ];
 		player enableInvulnerability();
 		player.tcs_is_invulnerable = true;
 	}
@@ -579,10 +587,12 @@ CMD_UNPAUSE_f( arg_list )
 game_unpause()
 {
 	level notify( "game_unpaused" );
-	setDvar( "ai_disablespawn", 1 );
-	setDvar( "g_ai", 0 );
-	foreach ( player in level.players )
+	setDvar( "ai_disablespawn", 0 );
+	setDvar( "g_ai", 1 );
+	players = getPlayers();
+	for ( i = 0; i < players.size; i++ )
 	{
+		player = players[ i ];
 		player disableInvulnerability();
 		player.tcs_is_invulnerable = false;
 	}

@@ -13,9 +13,8 @@ main()
 	cmd_addservercommand( "togglerespawn", "togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, "cheat", 1, false );
 	cmd_addservercommand( "killactors", "ka", "killactors", ::CMD_KILLACTORS_f, "cheat", 0, false );
 	cmd_addservercommand( "respawnspectators", "respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, "cheat", 0, false );
-	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::CMD_GIVEPOINTS_f, "cheat", 2, false );
+	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::cmd_givepoints_f, "cheat", 2, false );
 	cmd_addservercommand( "giveautokill", "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, "cheat", 1, true );
-	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::cmd_givepoints_f, 2, false );
 
 	cmd_register_arg_types_for_server_cmd( "spectator", "player" );
 	cmd_register_arg_types_for_server_cmd( "togglerespawn", "player" );
@@ -60,17 +59,6 @@ kill_all_zombies()
 			zombie dodamage( zombie.health + 100, (0,0,0) );
 		}
 	}
-}
-
-CMD_GIVEPOINTS_f( arg_list )
-{
-	result = [];
-	target = arg_list[ 0 ];
-	points = int( arg_list[ 1 ] );
-	target give_player_score( points );
-	result[ "filter" ] = "cmdinfo";
-	result[ "message" ] = "Gave " + target.playername + " " + points + " points";
-	return result;
 }
 
 CMD_SPECTATOR_f( arg_list )
@@ -161,7 +149,7 @@ cmd_givepoints_f( arg_list )
 	points = int( arg_list[ 1 ] );
 	target give_player_score( points );
 	result[ "filter" ] = "cmdinfo";
-	result[ "message" ] = "Gave " + target.name + " " + points + " points";
+	result[ "message" ] = "Gave " + target.playername + " " + points + " points";
 	return result;	
 }
 

@@ -182,8 +182,7 @@ cmd_weapon_f( arg_list )
 cmd_movespeedscale_f( arg_list )
 {
 	result = [];
-	setDvar( "floatstorage", arg_list[ 0 ] );
-	arg_as_float = getDvarFloat( "floatstorage" );
+	arg_as_float = cast_str_to_float( arg_list[ 0 ] );
 	self setMoveSpeedScale( arg_as_float );
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Set your movespeedscale to " + arg_as_float;

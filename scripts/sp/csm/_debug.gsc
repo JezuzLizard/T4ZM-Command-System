@@ -51,7 +51,7 @@ do_unit_test()
 	{
 		if ( is_true( players[ i ].pers["isBot"] ) )
 		{
-			removeTestClient( players[ i ] );
+			cmdexec( "clientkick " + players[ i ] getEntityNumber() );
 		}
 	}
 	level.doing_command_system_unittest = false;
@@ -214,18 +214,6 @@ end_unittest_after_time( time_in_minutes )
 	setDvar( "tcs_unittest", 0 );
 }
 
-end_unittest_after_time( time_in_minutes )
-{
-	time_passed_in_seconds = 0;
-	time_required_in_seconds = time_in_minutes * 60;
-	while ( time_passed_in_seconds < time_required_in_seconds )
-	{
-		wait 1;
-		time_passed_in_seconds++;
-	}
-	setDvar( "tcs_unittest", 0 );
-}
-
 cmd_testcmd_f( arg_list )
 {
 	result = [];
@@ -240,6 +228,7 @@ cmd_testcmd_f( arg_list )
 			cmdname = get_server_cmd_from_alias( arg_list[ 0 ] );
 			is_clientcmd = false;
 		}
+		level.unittest_total_commands_used = 0;
 		level thread test_cmd_for_time( arg_list[ 0 ], is_clientcmd, arg_list[ 1 ], arg_list[ 2 ] );
 	}
 	else 
@@ -250,10 +239,19 @@ cmd_testcmd_f( arg_list )
 	result[ "message" ] = "Testcmd " + cast_bool_to_str( level.doing_command_system_testcmd, "activated deactivated" ) + " for cmd " + arg_list[ 0 ];
 }
 
-test_cmd_for_time( cmdname, is_clientcmd, threadcount = 1, duration )
+test_cmd_for_time( cmdname, is_clientcmd, threadcount, duration )
 {
+	if ( !isDefined( threadcount ) )
+	{
+		threadcount = 1;
+	}
+	else 
+	{
+		threadcount = int( threadcount );
+	}
 	if ( isDefined( duration ) )
 	{
+		duration = int( duration );
 		level thread end_testcmd_after_time( duration );
 	}
 	manage_unittest_bots( 1 );
@@ -305,7 +303,7 @@ construct_chat_message_for_testcmd( cmdname, is_clientcmd )
 		arg_str = repackage_args( cmdargs );
 		message = cmdname + " " + arg_str;
 	}
-	cmd_log = self.name + " executed " + message + " count " + level.unittest_total_commands_used;
+	cmd_log = self.playername + " executed " + message + " count " + level.unittest_total_commands_used;
 	level com_printf( "con", "notitle", cmd_log );
 	level com_printf( "g_log", "cmdinfo", cmd_log );
 	level notify( "say", message, self, true );

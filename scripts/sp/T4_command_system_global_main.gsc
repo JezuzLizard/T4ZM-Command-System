@@ -101,7 +101,7 @@ main()
 	level.tcs_remove_client_command_by_group = ::cmd_removeclientcommandbygroup;
 	level.tcs_com_printf = scripts\sp\csm\_com::com_printf;
 	level.tcs_com_get_feedback_channel = scripts\sp\csm\_com::com_get_cmd_feedback_channel;
-	level.tcs_find_player_in_server = ::find_player_in_server;
+	level.tcs_find_player_in_server = ::cast_str_to_player;
 	level.tcs_check_cmd_collisions = ::check_for_command_alias_collisions;
 	level.tcs_player_is_valid_check = scripts\sp\csm\_cmd_util::is_player_valid;
 	level.tcs_debug_create_random_valid_args = scripts\sp\csm\_debug::create_random_valid_args2;
@@ -141,8 +141,8 @@ main()
 
 	cmd_addservercommand( "dodamage", "dd", "dodamage <entitynum|targetname|self> <damage> <origin> [entitynum|targetname|self] [entitynum|targetname|self] [hitloc] [MOD] [idflags] [weapon]", scripts\sp\csm\global_commands::cmd_dodamage_f, "cheat", 3, false );
 
-	cmd_addservercommand( "pause", "pa", "pause [minutes]", ::cmd_pause_f, "cheat", 0, false );
-	cmd_addservercommand( "unpause", "up", "unpause", ::cmd_unpause_f, "cheat", 0, false );
+	cmd_addservercommand( "pause", "pa", "pause [minutes]", scripts\sp\csm\global_commands::cmd_pause_f, "cheat", 0, false );
+	cmd_addservercommand( "unpause", "up", "unpause", scripts\sp\csm\global_commands::cmd_unpause_f, "cheat", 0, false );
 
 	cmd_register_arg_types_for_server_cmd( "givegod", "player" );
 	cmd_register_arg_types_for_server_cmd( "givenotarget", "player" );
@@ -150,13 +150,12 @@ main()
 	cmd_register_arg_types_for_server_cmd( "setrank", "player rank" );
 	cmd_register_arg_types_for_server_cmd( "setmovespeedscale", "player wholefloat" );
 	cmd_register_arg_types_for_server_cmd( "execonallplayers", "cmdalias" );
-	cmd_register_arg_types_for_server_cmd( "execonteam", "team cmdalias" );
 	cmd_register_arg_types_for_server_cmd( "playerlist", "team" );
 	cmd_register_arg_types_for_server_cmd( "help", "cmdalias" );
 	cmd_register_arg_types_for_server_cmd( "unittest", "int" );
 	cmd_register_arg_types_for_server_cmd( "testcmd", "cmdalias wholenum wholenum" );
 	cmd_register_arg_types_for_server_cmd( "dodamage", "entity float vector entity entity hitloc MOD idflags weapon" );
-
+	cmd_register_arg_types_for_server_cmd( "pause", "wholenum" );
 
 	level.client_commands = [];
 	cmd_addclientcommand( "god", undefined, "god", scripts\sp\csm\global_client_commands::CMD_GOD_f, "cheat", 0, true );
@@ -250,14 +249,14 @@ command_buffer()
 	level endon( "end_commands" );
 	while ( true )
 	{
-		level waittill( "say", message, player, isHidden );
+		level waittill( "say", message, player, is_hidden );
 		level cmd_execute( message, player, is_hidden );
 	}
 }
 
 cmd_execute( message, player, is_hidden )
 {
-	if ( isDefined( player ) && !isHidden && !is_command_token( message[ 0 ] ) )
+	if ( isDefined( player ) && !is_hidden && !is_command_token( message[ 0 ] ) )
 	{
 		return;
 	}
