@@ -24,16 +24,14 @@ CMD_GOD_f( arg_list )
 CMD_NOTARGET_f( arg_list )
 {
 	result = [];
-	on_off = cast_bool_to_str( !is_true( self.tcs_is_notarget ), "on off" );
+	on_off = cast_bool_to_str( !is_true( self.ignoreme ), "on off" );
 	if ( on_off == "on" )
 	{
 		self.ignoreme = true;
-		self.tcs_is_notarget = true;
 	}
 	else 
 	{
 		self.ignoreme = false;
-		self.tcs_is_notarget = false;
 	}
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Notarget " + on_off;
@@ -113,17 +111,16 @@ bottomless_clip()
 CMD_TELEPORT_f( arg_list )
 {
 	result = [];
-	target = self cast_str_to_player( arg_list[ 0 ] );
-	if ( !isDefined( target ) )
+	target = arg_list[ 0 ];
+	if ( target == self )
 	{
+		result[ "filter" ] = "cmderror";
+		result[ "message" ] = "You cannot teleport to yourself";
 		return result;
 	}
-	else 
-	{
-		self setOrigin( target.origin + anglesToForward( target.angles ) * 64 + anglesToRight( target.angles ) * 64 );
-		result[ "filter" ] = "cmdinfo";
-		result[ "message" ] = "Successfully teleported to " + target.playername + "'s position";
-	}
+	self setOrigin( target.origin + anglesToForward( target.angles ) * 64 + anglesToRight( target.angles ) * 64 );
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Successfully teleported to " + target.playername + "'s position";
 	return result;
 }
 
@@ -162,19 +159,11 @@ cmd_weapon_f( arg_list )
 	}
 	else 
 	{
-		if ( isDefined( level.zombie_include_weapons[ weapon ] ) )
-		{
-			self GiveWeapon( weapon, 0 ); 
-			self GiveMaxAmmo( weapon ); 
-			self SwitchToWeapon( weapon );
-			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Gave you " + weapon;
-		}
-		else 
-		{
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Weapon " + weapon + " is not available on map";
-		}
+		self GiveWeapon( weapon, 0 ); 
+		self GiveMaxAmmo( weapon ); 
+		self SwitchToWeapon( weapon );
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Gave you " + weapon;
 		return result;
 	}
 }
@@ -182,7 +171,7 @@ cmd_weapon_f( arg_list )
 cmd_movespeedscale_f( arg_list )
 {
 	result = [];
-	arg_as_float = cast_str_to_float( arg_list[ 0 ] );
+	arg_as_float = arg_list[ 0 ];
 	self setMoveSpeedScale( arg_as_float );
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Set your movespeedscale to " + arg_as_float;

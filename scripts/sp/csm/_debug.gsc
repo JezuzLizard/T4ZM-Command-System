@@ -9,8 +9,13 @@ cmd_unittest_validargs_f( arg_list )
 	level.doing_command_system_unittest = !is_true( level.doing_command_system_unittest );
 	if ( level.doing_command_system_unittest )
 	{
+		if ( !is_true( level.command_system_unittest_first_run ) )
+		{
+			level.command_system_unittest_first_run = true;
+			add_unittest_cmd_exclusions();
+		}
 		if ( isDefined( arg_list[ 0 ] ) )
-			required_bots = int( arg_list[ 0 ] );
+			required_bots = arg_list[ 0 ];
 		else 
 			required_bots = 1;
 		if ( isDefined( arg_list[ 1 ] ) )
@@ -102,19 +107,13 @@ construct_chat_message()
 {
 	cmdalias = arg_generate_rand_cmdalias();
 	//logprint( "random cmdalias: " + cmdalias + "\n" );
-	cmdname = get_client_cmd_from_alias( cmdalias );
-	is_clientcmd = true;
-	if ( cmdname == "" )
-	{
-		cmdname = get_server_cmd_from_alias( cmdalias );
-		is_clientcmd = false;
-	}
+	cmdname = get_cmd_from_alias( cmdalias );
 	if ( cmdname == "" )
 	{
 		return;
 	}
 	//logprint( "random cmdname: " + cmdname + "\n" );
-	cmdargs = create_random_valid_args2( cmdname, is_clientcmd );
+	cmdargs = self create_random_valid_args2( cmdname );
 	if ( cmdargs.size == 0 )
 	{
 		message = cmdname;
@@ -131,53 +130,32 @@ construct_chat_message()
 	level.unittest_total_commands_used++;
 }
 
-get_cmdargs_types( cmdname, is_clientcmd )
+get_cmdargs_types( cmdname )
 {
-	if ( is_clientcmd )
-	{
-		return level.client_commands[ cmdname ].argtypes;
-	}
-	else 
-	{
-		return level.server_commands[ cmdname ].argtypes;
-	}
+	return level.tcs_commands[ cmdname ].argtypes;
 }
 
-create_random_valid_args2( cmdname, is_clientcmd )
+create_random_valid_args2( cmdname )
 {
-	//message = "cmdname: " + cmdname + " is_clientcmd: " + is_clientcmd;
+	//message = "cmdname: " + cmdname;
 	//logprint( message + "\n" );
 	args = [];
-	types = get_cmdargs_types( cmdname, is_clientcmd );
+	types = get_cmdargs_types( cmdname );
 
 	if ( !isDefined( types ) )
 	{
 		return args;
 	}
-	if ( is_clientcmd )
-	{
-		minargs = level.client_commands[ cmdname ].minargs;
-	}
-	else 
-	{
-		minargs = level.server_commands[ cmdname ].minargs;
-	}
+	minargs = level.tcs_commands[ cmdname ].minargs;
 	//message = "minargs: " + minargs;
 	//logprint( message + "\n" );
 	for ( i = 0; i < minargs; i++ )
 	{
-		args[ i ] = generate_args_from_type( types[ i ] );
+		args[ i ] = self generate_args_from_type( types[ i ] );
 		//message1 = "types defined: " + isDefined( types[ i ] ) + " args defined: " + isDefined( args[ i ] );
 		//logprint( message1 + "\n" );
 		//message = "minargs: " + minargs +  " types[" + i + "]: " + types[ i ] + " args[" + i + "]: " + args[ i ];
 		//logprint( message + "\n" );
-	}
-
-	if ( cointoss() ) // 50% chance we don't add optional args
-	{
-		//message = "returning early (rng)";
-		//logprint( message + "\n" );
-		return args;
 	}
 
 	max_optional_args = randomInt( types.size );
@@ -186,7 +164,7 @@ create_random_valid_args2( cmdname, is_clientcmd )
 	//logprint( message + "\n" );
 	for ( i = minargs; i < max_optional_args; i++ )
 	{
-		args[ i ] = generate_args_from_type( types[ i ] );
+		args[ i ] = self generate_args_from_type( types[ i ] );
 		//message = "max_optional_args: " + max_optional_args + " types[" + i + "]: " + types[ i ] + " args[" + i + "]: " + args[ i ];
 		//logprint( message + "\n" );
 	}
@@ -197,8 +175,9 @@ generate_args_from_type( type )
 {
 	if ( isDefined( level.tcs_arg_type_handlers[ type ] ) )
 	{
-		return [[ level.tcs_arg_type_handlers[ type ].rand_gen_func ]]() + "";
+		return self [[ level.tcs_arg_type_handlers[ type ].rand_gen_func ]]() + "";
 	}
+	level scripts\sp\csm\_com::com_printf( "con|g_log", "cmderror", "Tried to generate args for " + type + " but no rand_gen_func handler exists for it" );
 	return "";
 }
 
@@ -221,15 +200,9 @@ cmd_testcmd_f( arg_list )
 	level.doing_command_system_testcmd = !is_true( level.doing_command_system_testcmd );
 	if ( level.doing_command_system_testcmd )
 	{
-		cmdname = get_client_cmd_from_alias( arg_list[ 0 ] );
-		is_clientcmd = true;
-		if ( cmdname == "" )
-		{
-			cmdname = get_server_cmd_from_alias( arg_list[ 0 ] );
-			is_clientcmd = false;
-		}
 		level.unittest_total_commands_used = 0;
-		level thread test_cmd_for_time( arg_list[ 0 ], is_clientcmd, arg_list[ 1 ], arg_list[ 2 ] );
+		level thread test_cmd_for_time( arg_list[ 0 ], arg_list[ 1 ], arg_list[ 2 ] );
+		level thread test_cmd_kick_bots_at_end();
 	}
 	else 
 	{
@@ -239,7 +212,7 @@ cmd_testcmd_f( arg_list )
 	result[ "message" ] = "Testcmd " + cast_bool_to_str( level.doing_command_system_testcmd, "activated deactivated" ) + " for cmd " + arg_list[ 0 ];
 }
 
-test_cmd_for_time( cmdname, is_clientcmd, threadcount, duration )
+test_cmd_for_time( cmdname, threadcount, duration )
 {
 	if ( !isDefined( threadcount ) )
 	{
@@ -257,13 +230,13 @@ test_cmd_for_time( cmdname, is_clientcmd, threadcount, duration )
 	manage_unittest_bots( 1 );
 	for ( i = 0; i < threadcount; i++ )
 	{
-		if ( is_clientcmd )
+		if ( level.tcs_commands[ cmdname ].is_clientcmd )
 		{
 			manage_unittest_bots( 1, cmdname );
 		}
 		else 
 		{
-			level thread testcmd_thread_server( cmdname, is_clientcmd );
+			level thread testcmd_thread_server( cmdname );
 		}
 	}
 }
@@ -281,19 +254,19 @@ end_testcmd_after_time( time_in_minutes )
 	level notify( "stop_testcmd" );
 }
 
-testcmd_thread_server( cmdname, is_clientcmd )
+testcmd_thread_server( cmdname )
 {
 	level endon( "stop_testcmd" );
 	while ( true )
 	{
-		level.server construct_chat_message_for_testcmd( cmdname, is_clientcmd );
+		level.server construct_chat_message_for_testcmd( cmdname );
 		wait 0.05;
 	}
 }
 
-construct_chat_message_for_testcmd( cmdname, is_clientcmd )
+construct_chat_message_for_testcmd( cmdname )
 {
-	cmdargs = create_random_valid_args2( cmdname, is_clientcmd );
+	cmdargs = self create_random_valid_args2( cmdname );
 	if ( cmdargs.size == 0 )
 	{
 		message = cmdname;
@@ -319,4 +292,41 @@ activate_specific_cmd()
 		self construct_chat_message_for_testcmd( self.specific_cmd, true );
 		wait 0.05;
 	}
+}
+
+test_cmd_kick_bots_at_end()
+{
+	level waittill( "stop_testcmd" );
+	players = getPlayers();
+	for ( i = 0; i < players.size; i++ )
+	{
+		if ( is_true( players[ i ].pers["isBot"] ) )
+		{
+			cmdexec( "clientkick " + players[ i ] getEntityNumber() );
+		}
+	}
+}
+
+add_unittest_cmd_exclusions()
+{
+	cmd_add_unittest_exclusion( "rotate" );
+	cmd_add_unittest_exclusion( "restart" );
+	cmd_add_unittest_exclusion( "changemap" );
+	cmd_add_unittest_exclusion( "unittest" );
+	cmd_add_unittest_exclusion( "unittestinvalidargs" );
+	cmd_add_unittest_exclusion( "setcvar" );
+	cmd_add_unittest_exclusion( "dvar" );
+	cmd_add_unittest_exclusion( "cvarall" );
+	cmd_add_unittest_exclusion( "givepermaperk" );
+	cmd_add_unittest_exclusion( "toggleoutofplayableareamonitor" );
+	cmd_add_unittest_exclusion( "spectator" );
+	cmd_add_unittest_exclusion( "execonteam" );
+	cmd_add_unittest_exclusion( "execonallplayers" );
+	cmd_add_unittest_exclusion( "testcmd" );
+	cmd_add_unittest_exclusion( "entitylist" );
+	cmd_add_unittest_exclusion( "weaponlist" );
+	cmd_add_unittest_exclusion( "poweruplist" );
+	cmd_add_unittest_exclusion( "perklist" );
+	cmd_add_unittest_exclusion( "cvar" );
+	cmd_add_unittest_exclusion( "permaperk" );
 }

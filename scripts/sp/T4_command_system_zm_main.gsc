@@ -9,19 +9,19 @@ main()
 	{
 		wait 0.05;
 	}
-	cmd_addservercommand( "spectator", "spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, "cheat", 1, false );
-	cmd_addservercommand( "togglerespawn", "togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, "cheat", 1, false );
-	cmd_addservercommand( "killactors", "ka", "killactors", ::CMD_KILLACTORS_f, "cheat", 0, false );
-	cmd_addservercommand( "respawnspectators", "respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, "cheat", 0, false );
-	cmd_addservercommand( "givepoints", "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::cmd_givepoints_f, "cheat", 2, false );
-	cmd_addservercommand( "giveautokill", "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, "cheat", 1, true );
+	cmd_addcommand( "spectator", false, "spec", "spectator <name|guid|clientnum|self>", ::CMD_SPECTATOR_f, "cheat", 1, false );
+	cmd_addcommand( "togglerespawn", false, "togresp", "togglerespawn <name|guid|clientnum|self>", ::CMD_TOGGLERESPAWN_f, "cheat", 1, false );
+	cmd_addcommand( "killactors", false, "ka", "killactors", ::CMD_KILLACTORS_f, "cheat", 0, false );
+	cmd_addcommand( "respawnspectators", false, "respspec", "respawnspectators", ::CMD_RESPAWNSPECTATORS_f, "cheat", 0, false );
+	cmd_addcommand( "givepoints", false, "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::cmd_givepoints_f, "cheat", 2, false );
+	cmd_addcommand( "giveautokill", false, "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, "cheat", 1, true );
 
 	cmd_register_arg_types_for_server_cmd( "spectator", "player" );
 	cmd_register_arg_types_for_server_cmd( "togglerespawn", "player" );
 	cmd_register_arg_types_for_server_cmd( "givepoints", "player int" );
 
-	cmd_addclientcommand( "points", "pts", "points <amount>", ::CMD_POINTS_f, "cheat", 1, false );
-	cmd_addclientcommand( "autokill", "ak", "autokill", ::cmd_autokill_f, "cheat", 0, true );
+	cmd_addcommand( "points", true, "pts", "points <amount>", ::CMD_POINTS_f, "cheat", 1, false );
+	cmd_addcommand( "autokill", true, "ak", "autokill", ::cmd_autokill_f, "cheat", 0, true );
 
 	cmd_register_arg_types_for_client_cmd( "points", "int" );
 
@@ -146,7 +146,7 @@ cmd_givepoints_f( arg_list )
 {
 	result = [];
 	target = arg_list[ 0 ];
-	points = int( arg_list[ 1 ] );
+	points = arg_list[ 1 ];
 	target give_player_score( points );
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Gave " + target.playername + " " + points + " points";
@@ -156,7 +156,7 @@ cmd_givepoints_f( arg_list )
 CMD_POINTS_f( arg_list )
 {
 	result = [];
-	points = int( arg_list[ 0 ] );
+	points = arg_list[ 0 ];
 	self give_player_score( points );
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Gave you " + points + " points";

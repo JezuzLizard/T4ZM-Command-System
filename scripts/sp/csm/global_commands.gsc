@@ -128,8 +128,7 @@ cmd_setmovespeedscale_f( arg_list )
 {
 	result = [];
 	target = arg_list[ 0 ];
-	setDvar( "floatstorage", arg_list[ 1 ] );
-	arg_as_float = cast_str_to_float( arg_list[ 1 ] );
+	arg_as_float = arg_list[ 1 ];
 	target setMoveSpeedScale( arg_as_float );
 	result[ "filter" ] = "cmdinfo";
 	result[ "message" ] = "Set movespeedscale for " + target.playername + " to " + arg_as_float;
@@ -211,19 +210,11 @@ cmd_giveweapon_f( arg_list )
 	}
 	else 
 	{
-		if ( isDefined( level.zombie_include_weapons[ weapon ] ) )
-		{
-			target GiveWeapon( weapon, 0 ); 
-			target GiveMaxAmmo( weapon ); 
-			target SwitchToWeapon( weapon );
-			result[ "filter" ] = "cmdinfo";
-			result[ "message" ] = "Gave " + target.playername + " " + weapon;
-		}
-		else 
-		{
-			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Weapon " + weapon + " is not available on map";
-		}
+		target GiveWeapon( weapon, 0 ); 
+		target GiveMaxAmmo( weapon ); 
+		target SwitchToWeapon( weapon );
+		result[ "filter" ] = "cmdinfo";
+		result[ "message" ] = "Gave " + target.playername + " " + weapon;
 		return result;
 	}	
 }
@@ -261,20 +252,13 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 {
 	result = [];
 	cmd = arg_list[ 0 ];
-	cmd_to_execute = get_server_cmd_from_alias( cmd );
-	if ( cmd_to_execute != "" )
+	cmd_to_execute = get_cmd_from_alias( cmd );
+	if ( !level.tcs_commands[ cmd_to_execute ].is_clientcmd )
 	{
 		result[ "filter" ] = "cmderror";
 		result[ "message" ] = "You cannot call a server cmd with execonallplayers";
 		return result;
 	}
-	cmd_to_execute = get_client_cmd_from_alias( cmd );
-	if ( cmd_to_execute == "" )
-	{{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Invalid client cmd";
-		return result;
-	}}
 	var_args = [];
 	for ( i = 1; i < arg_list.size; i++ )
 	{
@@ -283,8 +267,6 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 	is_valid = self test_cmd_is_valid( cmd_to_execute, var_args, true );
 	if ( !is_valid )
 	{
-		result[ "filter" ] = "cmderror";
-		result[ "message" ] = "Insufficient num args sent to " + cmd_to_execute + " from execonallplayers";
 		return result;
 	}
 	players = getPlayers();
@@ -305,6 +287,7 @@ CMD_EXECONALLPLAYERS_f( arg_list )
 
 CMD_PLAYERLIST_f( arg_list )
 {
+	result = [];
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( channel != "con" )
 	{
@@ -316,17 +299,26 @@ CMD_PLAYERLIST_f( arg_list )
 		level scripts\sp\csm\_com::com_printf( channel, "notitle", "There are no players in the server", self );
 		return;
 	}
+	self thread list_players_throttled( channel, players );
+	return result;
+}
+
+list_players_throttled( channel, players )
+{
+	self notify( "listing_players" );
+	self endon( "listing_players" );
 	for ( i = 0; i < players.size; i++ )
 	{
 		if ( is_true( self.is_server ) || self.cmdpower >= level.CMD_POWER_MODERATOR )
 		{
-			message = "^3" + players[ i ].playername + " " + players[ i ].tcs_rank + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
+			message = "^3" + players[ i ].name + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
 		}
 		else 
 		{
-			message = "^3" + players[ i ].playername + " " + players[ i ].tcs_rank + " " + players[ i ] getEntityNumber();
+			message = "^3" + players[ i ].name + " " + players[ i ] getEntityNumber();
 		}
 		level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
+		wait 0.1;
 	}
 	if ( !is_true( self.is_server ) )
 	{
@@ -336,35 +328,35 @@ CMD_PLAYERLIST_f( arg_list )
 
 CMD_CMDLIST_f( arg_list )
 {
+	result = [];
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( channel != "con" )
 	{
 		channel = "iprint";
 	}
-	cmdnames = getArrayKeys( level.server_commands );
+	self thread list_cmds_throttled( channel );
+	return result;
+}
+
+list_cmds_throttled( channel )
+{
+	self notify( "listing_cmds" );
+	self endon( "listing_cmds" );
+	cmdnames = getArrayKeys( level.tcs_commands );
 	for ( i = 0; i < cmdnames.size; i++ )
 	{
 		if ( self scripts\sp\csm\_perms::has_permission_for_cmd( cmdnames[ i ], false ) )
 		{
-			message = "^3" + level.server_commands[ cmdnames[ i ] ].usage;
+			message = "^3" + level.tcs_commands[ cmdnames[ i ] ].usage;
+			
 			level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
+			wait 0.1;
 		}
 	}
-	if ( is_true( self.is_server ) )
+	if ( !is_true( self.is_server ) )
 	{
-		return;
+		level scripts\sp\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
 	}
-	cmdnames = getArrayKeys( level.client_commands );
-	for ( i = 0; i < cmdnames.size; i++ )
-	{
-		if ( self scripts\sp\csm\_perms::has_permission_for_cmd( cmdnames[ i ], true ) )
-		{
-			message = "^3" + level.client_commands[ cmdnames[ i ] ].usage;
-			level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
-		}
-	}
-
-	level scripts\sp\csm\_com::com_printf( channel, "cmdinfo", "Use shift + ` and scroll to the bottom to view the full list", self );
 }
 
 cmd_weaponlist_f( arg_list )
@@ -385,91 +377,31 @@ cmd_weaponlist_f( arg_list )
 cmd_help_f( arg_list )
 {
 	result = [];
-	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
+	channel = self com_get_cmd_feedback_channel();
 	if ( channel != "con" )
 	{
 		channel = "iprint";
 	}
 	if ( is_true( self.is_server ) )
 	{
-		if ( isDefined( arg_list[ 0 ] ) )
+		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view cmds you can use do tcscmd cmdlist in the console", self );
+		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view players in the server do tcscmd playerlist in the console", self );
+		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view the usage of a specific cmd do tcscmd help <cmdalias>", self );
+		if ( isDefined( level.tcs_additional_help_prints_func ) )
 		{
-			cmdalias = arg_list[ 0 ];
-			cmd = get_client_cmd_from_alias( cmdalias );
-			if ( cmd == "" )
-			{
-				cmd = get_server_cmd_from_alias( cmdalias );
-				if ( cmd == "" )
-				{
-					level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Cmd alias " + cmdalias + " doesn't reference any cmd", self );
-					return result;
-				}
-			}
-			if ( isDefined( level.server_commands[ cmd ] ) )
-			{
-				message = "^3" + level.server_commands[ cmd ].usage;
-				level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
-			}
-			else if ( isDefined( level.client_commands[ cmd ] ) )
-			{
-				message = "^3" + level.client_commands[ cmd ].usage;
-				level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
-			}
-		}
-		else 
-		{
-			level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view cmds you can use do tcscmd cmdlist in the console", self );
-			level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view players in the server do tcscmd playerlist in the console", self );
-			level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view the usage of a specific cmd do tcscmd help <cmdalias>", self );
+			self [[ level.tcs_additional_help_prints_func ]]( channel );
 		}
 	}
 	else 
 	{
-		if ( isDefined( arg_list[ 0 ] ) )
+		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view cmds you can use do /cmdlist in the chat", self );
+		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view players in the server do /playerlist in the chat", self );
+		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view the usage of a specific cmd do /help <cmdalias>", self );
+		if ( isDefined( level.tcs_additional_help_prints_func ) )
 		{
-			cmdalias = arg_list[ 0 ];
-			cmd = get_client_cmd_from_alias( cmdalias );
-			if ( cmd == "" )
-			{
-				cmd = get_server_cmd_from_alias( cmdalias );
-				if ( cmd == "" )
-				{
-					level scripts\sp\csm\_com::com_printf( channel, "cmderror", "Cmd alias " + cmdalias + " doesn't reference any cmd", self );
-					return result;
-				}
-			}
-			if ( isDefined( level.server_commands[ cmd ] ) )
-			{
-				if ( self scripts\sp\csm\_perms::has_permission_for_cmd( cmd, false ) )
-				{
-					message = "^3" + level.server_commands[ cmd ].usage;
-					level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
-				}
-				else 
-				{
-					level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You do not have permission for cmd " + cmd, self );
-				}
-			}
-			else if ( isDefined( level.client_commands[ cmd ] ) )
-			{
-				if ( self scripts\sp\csm\_perms::has_permission_for_cmd( cmd, true ) )
-				{
-					message = "^3" + level.client_commands[ cmd ].usage;
-					level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
-				}
-				else 
-				{
-					level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You do not have permission for cmd " + cmd, self );
-				}
-			}
+			self [[ level.tcs_additional_help_prints_func ]]( channel );
 		}
-		else 
-		{	
-			level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view cmds you can use do /cmdlist in the chat", self );
-			level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view players in the server do /playerlist in the chat", self );
-			level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view the usage of a specific cmd do /help <cmdalias>", self );
-			level scripts\sp\csm\_com::com_printf( channel, "cmdinfo", "^3Use shift + ` and scroll to the bottom to view the full list", self );
-		}
+		level scripts\sp\csm\_com::ccom_printf( channel, "cmdinfo", "^3Use shift + ` and scroll to the bottom to view the full list", self );
 	}
 	return result;
 }
@@ -477,19 +409,15 @@ cmd_help_f( arg_list )
 cmd_dodamage_f( arg_list )
 {
 	result = [];
-	target = find_entity_in_server( arg_list[ 0 ], true );
-	arg_as_float = int( arg_list[ 1 ] );
+	target = arg_list[ 0 ];
+	arg_as_float = arg_list[ 1 ];
 	damage = arg_as_float;
-	pos = cast_str_to_vector( arg_list[ 2 ] );
-	attacker = find_entity_in_server( arg_list[ 3 ], true );
-	inflictor = find_entity_in_server( arg_list[ 4 ], true );
+	pos = arg_list[ 2 ];
+	attacker = arg_list[ 3 ];
+	inflictor = arg_list[ 4 ];
 	hitloc = arg_list[ 5 ];
 	mod = arg_list[ 6 ];
-	idflags = undefined;
-	if ( isDefined( arg_list[ 7 ] ) )
-	{
-		idflags = int( arg_list[ 7 ] );
-	}
+	idflags = arg_list[ 7 ];
 	weapon = arg_list[ 8 ];
 	switch ( arg_list.size )
 	{

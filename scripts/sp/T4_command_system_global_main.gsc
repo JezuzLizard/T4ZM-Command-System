@@ -91,14 +91,10 @@ main()
 	}
 	// "/" is always useable by default
 	scripts\sp\csm\_perms::cmd_init_perms();
-	level.tcs_add_server_command_func = ::cmd_addservercommand;
-	level.tcs_set_server_command_power_func = ::cmd_setservercommandpower;
-	level.tcs_add_client_command_func = ::cmd_addclientcommand;
-	level.tcs_set_client_command_power_func = ::cmd_setclientcommandpower;
-	level.tcs_remove_server_command = ::cmd_removeservercommand;
-	level.tcs_remove_client_command = ::cmd_removeclientcommand;
-	level.tcs_remove_server_command_by_group = ::cmd_removeservercommandbygroup;
-	level.tcs_remove_client_command_by_group = ::cmd_removeclientcommandbygroup;
+	level.tcs_add_command_func = ::cmd_addcommand;
+	level.tcs_set_command_power_func = ::cmd_setcommandpower;
+	level.tcs_remove_command = ::cmd_removecommand;
+	level.tcs_remove_command_by_group = ::cmd_removecommandbygroup;
 	level.tcs_com_printf = scripts\sp\csm\_com::com_printf;
 	level.tcs_com_get_feedback_channel = scripts\sp\csm\_com::com_get_cmd_feedback_channel;
 	level.tcs_find_player_in_server = ::cast_str_to_player;
@@ -106,43 +102,42 @@ main()
 	level.tcs_player_is_valid_check = scripts\sp\csm\_cmd_util::is_player_valid;
 	level.tcs_debug_create_random_valid_args = scripts\sp\csm\_debug::create_random_valid_args2;
 	level.tcs_repackage_args = ::repackage_args;
-	level.server_commands = [];
-	cmd_addservercommand( "setcvar", "scv", "setcvar <name|guid|clientnum|self> <cvarname> <newval>", scripts\sp\csm\global_commands::CMD_SETCVAR_f, "cheat", 3, false );
-	cmd_addservercommand( "dvar", undefined, "dvar <dvarname> <newval>", scripts\sp\csm\global_commands::CMD_SERVER_DVAR_f, "cheat", 2, false );
-	cmd_addservercommand( "cvarall", "cva", "cvarall <cvarname> <newval>", scripts\sp\csm\global_commands::CMD_CVARALL_f, "cheat", 2, false );
-	cmd_addservercommand( "givegod", "ggd", "givegod <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVEGOD_f, "cheat", 1, true );
-	cmd_addservercommand( "givenotarget", "gnt", "givenotarget <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVENOTARGET_f, "cheat", 1, true );
-	cmd_addservercommand( "giveinvisible", "ginv", "giveinvisible <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVEINVISIBLE_f, "cheat", 1, true );
-	cmd_addservercommand( "giveweapon", "givewep", "giveweapon <name|guid|clientnum|self> <weaponname|all>", scripts\sp\csm\global_commands::cmd_giveweapon_f, "cheat", 2, true );
-	cmd_addservercommand( "setrank", "sr", "setrank <name|guid|clientnum|self> <rank>", scripts\sp\csm\global_commands::CMD_SETRANK_f, "host", 2, false );
-	cmd_addservercommand( "setmovespeedscale", "smvsps smss", "setmovespeedscale <name|guid|clientnum|self> <val>", scripts\sp\csm\global_commands::cmd_setmovespeedscale_f, "cheat", 2, true );
+	cmd_addcommand( "setcvar", false, "scv", "setcvar <name|guid|clientnum|self> <cvarname> <newval>", scripts\sp\csm\global_commands::CMD_SETCVAR_f, "cheat", 3, false );
+	cmd_addcommand( "dvar", false, undefined, "dvar <dvarname> <newval>", scripts\sp\csm\global_commands::CMD_SERVER_DVAR_f, "cheat", 2, false );
+	cmd_addcommand( "cvarall", false, "cva", "cvarall <cvarname> <newval>", scripts\sp\csm\global_commands::CMD_CVARALL_f, "cheat", 2, false );
+	cmd_addcommand( "givegod", false, "ggd", "givegod <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVEGOD_f, "cheat", 1, true );
+	cmd_addcommand( "givenotarget", false, "gnt", "givenotarget <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVENOTARGET_f, "cheat", 1, true );
+	cmd_addcommand( "giveinvisible", false, "ginv", "giveinvisible <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVEINVISIBLE_f, "cheat", 1, true );
+	cmd_addcommand( "giveweapon", false, "givewep", "giveweapon <name|guid|clientnum|self> <weaponname|all>", scripts\sp\csm\global_commands::cmd_giveweapon_f, "cheat", 2, true );
+	cmd_addcommand( "setrank", false, "sr", "setrank <name|guid|clientnum|self> <rank>", scripts\sp\csm\global_commands::CMD_SETRANK_f, "host", 2, false );
+	cmd_addcommand( "setmovespeedscale", false, "smvsps smss", "setmovespeedscale <name|guid|clientnum|self> <val>", scripts\sp\csm\global_commands::cmd_setmovespeedscale_f, "cheat", 2, true );
 
-	cmd_addservercommand( "nextmap", "nm", "nextmap <mapalias>", scripts\sp\csm\global_commands::CMD_NEXTMAP_f, "elevated", 1, false );
-	cmd_addservercommand( "resetrotation", "rr", "resetrotation", scripts\sp\csm\global_commands::CMD_RESETROTATION_f, "elevated", 0, false );
-	cmd_addservercommand( "randomnextmap", "rnm", "randomnextmap", scripts\sp\csm\global_commands::CMD_RANDOMNEXTMAP_f, "elevated", 0, false );
-	cmd_addservercommand( "restart", "mr", "restart", scripts\sp\csm\global_threaded_commands::CMD_RESTART_f, "elevated", 0, false, true );
-	cmd_addservercommand( "rotate", "ro", "rotate", scripts\sp\csm\global_threaded_commands::CMD_ROTATE_f, "elevated", 0, false, true );
-	cmd_addservercommand( "changemap", "cm", "changemap <mapalias>", scripts\sp\csm\global_threaded_commands::CMD_CHANGEMAP_f, "elevated", 1, false, true );
-	cmd_addservercommand( "setrotation", "setr", "setrotation <rotationdvar>", scripts\sp\csm\global_commands::CMD_SETROTATION_f, "elevated", 1, false );
+	cmd_addcommand( "nextmap", false, "nm", "nextmap <mapalias>", scripts\sp\csm\global_commands::CMD_NEXTMAP_f, "elevated", 1, false );
+	cmd_addcommand( "resetrotation", false, "rr", "resetrotation", scripts\sp\csm\global_commands::CMD_RESETROTATION_f, "elevated", 0, false );
+	cmd_addcommand( "randomnextmap", false, "rnm", "randomnextmap", scripts\sp\csm\global_commands::CMD_RANDOMNEXTMAP_f, "elevated", 0, false );
+	cmd_addcommand( "restart", false, "mr", "restart", scripts\sp\csm\global_threaded_commands::CMD_RESTART_f, "elevated", 0, false, true );
+	cmd_addcommand( "rotate", false, "ro", "rotate", scripts\sp\csm\global_threaded_commands::CMD_ROTATE_f, "elevated", 0, false, true );
+	cmd_addcommand( "changemap", false, "cm", "changemap <mapalias>", scripts\sp\csm\global_threaded_commands::CMD_CHANGEMAP_f, "elevated", 1, false, true );
+	cmd_addcommand( "setrotation", false, "setr", "setrotation <rotationdvar>", scripts\sp\csm\global_commands::CMD_SETROTATION_f, "elevated", 1, false );
 
-	cmd_addservercommand( "lock", undefined, "lock <password>", scripts\sp\csm\global_commands::CMD_LOCK_SERVER_f, "elevated", 1, false );
-	cmd_addservercommand( "unlock", "ul", "unlock", scripts\sp\csm\global_commands::CMD_UNLOCK_SERVER_f, "elevated", 0, false );
+	cmd_addcommand( "lock", false, undefined, "lock <password>", scripts\sp\csm\global_commands::CMD_LOCK_SERVER_f, "elevated", 1, false );
+	cmd_addcommand( "unlock", false, "ul", "unlock", scripts\sp\csm\global_commands::CMD_UNLOCK_SERVER_f, "elevated", 0, false );
 
-	cmd_addservercommand( "execonallplayers", "execonall exall", "execonallplayers <cmdname> [cmdargs] ...", scripts\sp\csm\global_commands::CMD_EXECONALLPLAYERS_f, "host", 1, false );
+	cmd_addcommand( "execonallplayers", false, "execonall exall", "execonallplayers <cmdname> [cmdargs] ...", scripts\sp\csm\global_commands::CMD_EXECONALLPLAYERS_f, "host", 1, false );
 
-	cmd_addservercommand( "cmdlist", undefined, "cmdlist", scripts\sp\csm\global_commands::CMD_CMDLIST_f, "none", 0, false );
-	cmd_addservercommand( "playerlist", "plist", "playerlist", scripts\sp\csm\global_commands::CMD_PLAYERLIST_f, "none", 0, false );
-	cmd_addservercommand( "weaponlist", "wlist", "weaponlist", scripts\sp\csm\global_commands::cmd_weaponlist_f, "none", 0, false );
+	cmd_addcommand( "cmdlist", false, undefined, "cmdlist", scripts\sp\csm\global_commands::CMD_CMDLIST_f, "none", 0, false );
+	cmd_addcommand( "playerlist", false, "plist", "playerlist", scripts\sp\csm\global_commands::CMD_PLAYERLIST_f, "none", 0, false );
+	cmd_addcommand( "weaponlist", false, "wlist", "weaponlist", scripts\sp\csm\global_commands::cmd_weaponlist_f, "none", 0, false );
 
-	cmd_addservercommand( "help", undefined, "help [cmdname]", scripts\sp\csm\global_commands::cmd_help_f, "none", 0, false );
+	cmd_addcommand( "help", false, undefined, "help [cmdname]", scripts\sp\csm\global_commands::cmd_help_f, "none", 0, false );
 
-	cmd_addservercommand( "unittest", undefined, "unittest [botcount] [minutes]", scripts\sp\csm\_debug::cmd_unittest_validargs_f, "host", 0, false );
-	cmd_addservercommand( "testcmd", undefined, "testcmd <cmdalias> [threadcount] [minutes]", scripts\sp\csm\_debug::cmd_testcmd_f, "host", 1, false );
+	cmd_addcommand( "unittest", false, undefined, "unittest [botcount] [minutes]", scripts\sp\csm\_debug::cmd_unittest_validargs_f, "host", 0, false );
+	cmd_addcommand( "testcmd", false, undefined, "testcmd <cmdalias> [threadcount] [minutes]", scripts\sp\csm\_debug::cmd_testcmd_f, "host", 1, false );
 
-	cmd_addservercommand( "dodamage", "dd", "dodamage <entitynum|targetname|self> <damage> <origin> [entitynum|targetname|self] [entitynum|targetname|self] [hitloc] [MOD] [idflags] [weapon]", scripts\sp\csm\global_commands::cmd_dodamage_f, "cheat", 3, false );
+	cmd_addcommand( "dodamage", false, "dd", "dodamage <entitynum|targetname|self> <damage> <origin> [entitynum|targetname|self] [entitynum|targetname|self] [hitloc] [MOD] [idflags] [weapon]", scripts\sp\csm\global_commands::cmd_dodamage_f, "cheat", 3, false );
 
-	cmd_addservercommand( "pause", "pa", "pause [minutes]", scripts\sp\csm\global_commands::cmd_pause_f, "cheat", 0, false );
-	cmd_addservercommand( "unpause", "up", "unpause", scripts\sp\csm\global_commands::cmd_unpause_f, "cheat", 0, false );
+	cmd_addcommand( "pause", false, "pa", "pause [minutes]", scripts\sp\csm\global_commands::cmd_pause_f, "cheat", 0, false );
+	cmd_addcommand( "unpause", false, "up", "unpause", scripts\sp\csm\global_commands::cmd_unpause_f, "cheat", 0, false );
 
 	cmd_register_arg_types_for_server_cmd( "givegod", "player" );
 	cmd_register_arg_types_for_server_cmd( "givenotarget", "player" );
@@ -157,34 +152,34 @@ main()
 	cmd_register_arg_types_for_server_cmd( "dodamage", "entity float vector entity entity hitloc MOD idflags weapon" );
 	cmd_register_arg_types_for_server_cmd( "pause", "wholenum" );
 
-	level.client_commands = [];
-	cmd_addclientcommand( "god", undefined, "god", scripts\sp\csm\global_client_commands::CMD_GOD_f, "cheat", 0, true );
-	cmd_addclientcommand( "notarget", "nt", "notarget", scripts\sp\csm\global_client_commands::CMD_NOTARGET_f, "cheat", 0, true );
-	cmd_addclientcommand( "invisible", "invis", "invisible", scripts\sp\csm\global_client_commands::CMD_INVISIBLE_f, "cheat", 0, true );
-	cmd_addclientcommand( "printorigin", "printorg por", "printorigin", scripts\sp\csm\global_client_commands::CMD_PRINTORIGIN_f, "none", 0, false );
-	cmd_addclientcommand( "printangles", "printang pan", "printangles", scripts\sp\csm\global_client_commands::CMD_PRINTANGLES_f, "none", 0, false );
-	cmd_addclientcommand( "bottomlessclip", "botclip bcl", "bottomlessclip", scripts\sp\csm\global_client_commands::CMD_BOTTOMLESSCLIP_f, "cheat", 0, true );
-	cmd_addclientcommand( "teleport", "tele", "teleport <name|guid|clientnum>", scripts\sp\csm\global_client_commands::CMD_TELEPORT_f, "cheat", 1, false );
-	cmd_addclientcommand( "cvar", undefined, "cvar <cvarname> <newval>", scripts\sp\csm\global_client_commands::CMD_CVAR_f, "cheat", 2, false );
-	cmd_addclientcommand( "weapon", "wep", "weapon <weaponname|all>", scripts\sp\csm\global_client_commands::cmd_weapon_f, "cheat", 1, true );
-	cmd_addclientcommand( "movespeedscale", "mvsps mss", "movespeedscale <val>", scripts\sp\csm\global_client_commands::cmd_movespeedscale_f, "cheat", 1, true );
-	cmd_addclientcommand( "togglehud", "toghud", "togglehud", scripts\sp\csm\global_client_commands::cmd_togglehud_f, "none", 0, false );
+	cmd_addcommand( "god", true, undefined, "god", scripts\sp\csm\global_client_commands::CMD_GOD_f, "cheat", 0, true );
+	cmd_addcommand( "notarget", true, "nt", "notarget", scripts\sp\csm\global_client_commands::CMD_NOTARGET_f, "cheat", 0, true );
+	cmd_addcommand( "invisible", true, "invis", "invisible", scripts\sp\csm\global_client_commands::CMD_INVISIBLE_f, "cheat", 0, true );
+	cmd_addcommand( "printorigin", true, "printorg por", "printorigin", scripts\sp\csm\global_client_commands::CMD_PRINTORIGIN_f, "none", 0, false );
+	cmd_addcommand( "printangles", true, "printang pan", "printangles", scripts\sp\csm\global_client_commands::CMD_PRINTANGLES_f, "none", 0, false );
+	cmd_addcommand( "bottomlessclip", true, "botclip bcl", "bottomlessclip", scripts\sp\csm\global_client_commands::CMD_BOTTOMLESSCLIP_f, "cheat", 0, true );
+	cmd_addcommand( "teleport", true, "tele", "teleport <name|guid|clientnum>", scripts\sp\csm\global_client_commands::CMD_TELEPORT_f, "cheat", 1, false );
+	cmd_addcommand( "cvar", true, undefined, "cvar <cvarname> <newval>", scripts\sp\csm\global_client_commands::CMD_CVAR_f, "cheat", 2, false );
+	cmd_addcommand( "weapon", true, "wep", "weapon <weaponname|all>", scripts\sp\csm\global_client_commands::cmd_weapon_f, "cheat", 1, true );
+	cmd_addcommand( "movespeedscale", true, "mvsps mss", "movespeedscale <val>", scripts\sp\csm\global_client_commands::cmd_movespeedscale_f, "cheat", 1, true );
+	cmd_addcommand( "togglehud", true, "toghud", "togglehud", scripts\sp\csm\global_client_commands::cmd_togglehud_f, "none", 0, false );
 
 	cmd_register_arg_types_for_client_cmd( "teleport", "player" );
 	cmd_register_arg_types_for_client_cmd( "movespeedscale", "wholefloat" );
 
-	cmd_register_arg_type_handlers( "player", ::arg_player_handler, ::arg_generate_rand_player, "not a valid player" );
-	cmd_register_arg_type_handlers( "wholenum", ::arg_wholenum_handler, ::arg_generate_rand_wholenum, "not a whole number" );
-	cmd_register_arg_type_handlers( "int", ::arg_int_handler, ::arg_generate_rand_int, "not an int" );
-	cmd_register_arg_type_handlers( "float", ::arg_float_handler, ::arg_generate_rand_float, "not a float" );
-	cmd_register_arg_type_handlers( "wholefloat", ::arg_wholefloat_handler, ::arg_generate_rand_wholefloat, "not a positive float" );
-	cmd_register_arg_type_handlers( "vector", ::arg_vector_handler, ::arg_generate_rand_vector, "not a valid vector, format is float,float,float" );
-	cmd_register_arg_type_handlers( "cmdalias", ::arg_cmdalias_handler, ::arg_generate_rand_cmdalias, "not a valid cmdalias" );
-	cmd_register_arg_type_handlers( "rank", ::arg_rank_handler, ::arg_generate_rand_rank, "not a valid rank" );
-	cmd_register_arg_type_handlers( "entity", ::arg_entity_handler, ::arg_generate_rand_entity, "not a valid entity" );
-	cmd_register_arg_type_handlers( "hitloc", ::arg_hitloc_handler, ::arg_generate_rand_hitloc, "not a valid hitloc" );
-	cmd_register_arg_type_handlers( "MOD", ::arg_mod_handler, ::arg_generate_rand_mod, "not a valid mod" );
-	cmd_register_arg_type_handlers( "idflags", ::arg_idflags_handler, ::arg_generate_rand_idflags, "not a valid idflag" );
+	cmd_register_arg_type_handlers( "player", ::arg_player_handler, ::arg_generate_rand_player, ::arg_cast_to_player, "not a valid player" );
+	cmd_register_arg_type_handlers( "wholenum", ::arg_wholenum_handler, ::arg_generate_rand_wholenum, ::arg_cast_to_int, "not a whole number" );
+	cmd_register_arg_type_handlers( "int", ::arg_int_handler, ::arg_generate_rand_int, ::arg_cast_to_int, "not an int" );
+	cmd_register_arg_type_handlers( "float", ::arg_float_handler, ::arg_generate_rand_float, ::arg_cast_to_float, "not a float" );
+	cmd_register_arg_type_handlers( "wholefloat", ::arg_wholefloat_handler, ::arg_generate_rand_wholefloat, ::arg_cast_to_float, "not a float greater than 0" );
+	cmd_register_arg_type_handlers( "vector", ::arg_vector_handler, ::arg_generate_rand_vector, ::arg_cast_to_vector, "not a valid vector, format is float,float,float" );
+	cmd_register_arg_type_handlers( "team", ::arg_team_handler, ::arg_generate_rand_team, undefined, "not a valid team" );
+	cmd_register_arg_type_handlers( "cmdalias", ::arg_cmdalias_handler, ::arg_generate_rand_cmdalias, ::arg_cast_to_cmd, "not a valid cmdalias" );
+	cmd_register_arg_type_handlers( "rank", ::arg_rank_handler, ::arg_generate_rand_rank, undefined, "not a valid rank" );
+	cmd_register_arg_type_handlers( "entity", ::arg_entity_handler, ::arg_generate_rand_entity, ::arg_cast_to_entity, "not a valid entity" );
+	cmd_register_arg_type_handlers( "hitloc", ::arg_hitloc_handler, ::arg_generate_rand_hitloc, undefined, "not a valid hitloc" );
+	cmd_register_arg_type_handlers( "MOD", ::arg_mod_handler, ::arg_generate_rand_mod, ::arg_cast_to_mod, "not a valid mod" );
+	cmd_register_arg_type_handlers( "idflags", ::arg_idflags_handler, ::arg_generate_rand_idflags, ::arg_cast_to_int, "not a valid idflag" );
 
 	build_hitlocs_array();
 	build_mods_array();
@@ -209,6 +204,10 @@ main()
 	level thread check_for_command_alias_collisions();
 	level.command_init_done = true;
 }
+
+	blacklisted_cmds_client = array2( "cvar" );
+	blacklisted_cmds_server1 = array2( "rotate", "restart", "changemap", "unittest", "unittestinvalidargs", "setcvar", "dvar", "cvarall", "spectator", "execonallplayers" );
+	blacklisted_cmds_server2 = array2( "setrotation", "resetrotation", "nextmap", "testcmd" );
 
 init()
 {
@@ -295,20 +294,19 @@ cmd_execute( message, player, is_hidden )
 	{
 		cmdname = multi_cmds[ cmd_index ][ "cmdname" ];
 		args = multi_cmds[ cmd_index ][ "args" ];
-		is_clientcmd = multi_cmds[ cmd_index ][ "is_clientcmd" ];
-		if ( !player scripts\sp\csm\_perms::has_permission_for_cmd( cmdname, is_clientcmd ) )
+		if ( !player scripts\sp\csm\_perms::has_permission_for_cmd( cmdname ) )
 		{
 			level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You do not have permission to use " + cmdname + " command", player );
 		}
 		else
 		{
-			if ( is_clientcmd && is_true( player.is_server ) )
+			if ( level.tcs_commands[ cmdname ].is_clientcmd && is_true( player.is_server ) )
 			{
 				level scripts\sp\csm\_com::com_printf( channel, "cmderror", "You cannot use " + cmdname + " client command as the server", player );
 			}
 			else 
 			{
-				player cmd_execute_internal( cmdname, args, is_clientcmd, getDvarIntDefault( "tcs_silent_cmds", 0 ), getDvarIntDefault( "tcs_logprint_cmd_usage", 1 ) );
+				player cmd_execute_internal( cmdname, args, getDvarIntDefault( "tcs_silent_cmds", 0 ), getDvarIntDefault( "tcs_logprint_cmd_usage", 1 ) );
 				player thread scripts\sp\csm\_perms::cmd_cooldown();
 			}
 		}

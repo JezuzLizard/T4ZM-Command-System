@@ -186,33 +186,25 @@ has_permission_for_cmd( cmdname, is_clientcmd )
 			{
 				return false;
 			}
-			else if ( cmdname == disallowed_cmd )
-			{
-				return false;
-			}
-			else if ( is_clientcmd )
+			else if ( level.tcs_commands[ cmdname ].is_clientcmd )
 			{
 				if ( disallowed_cmd == "all_client_cmds" )
 				{
 					return false;
 				}
-				// In this case the token must be a rank name
-				else if ( isDefined( level.client_command_groups[ disallowed_cmd ] ) && isDefined( level.client_command_groups[ disallowed_cmd ][ cmdname ] ) )
-				{
-					return false;
-				}
 			}
-			else if ( !is_clientcmd )
+			else if ( disallowed_cmd == "all_server_cmds" )
 			{
-				if ( disallowed_cmd == "all_server_cmds" )
-				{
-					return false;
-				}
-				// In this case the token must be a rank name
-				else if ( isDefined( level.server_command_groups[ disallowed_cmd ] ) && isDefined( level.server_command_groups[ disallowed_cmd ][ cmdname ] ) )
-				{
-					return false;
-				}
+				return false;
+			}
+			if ( cmdname == disallowed_cmd )
+			{
+				return false;
+			}
+			// In this case the token must be a rank name
+			else if ( isDefined( level.command_groups[ disallowed_cmd ] ) && isDefined( level.command_groups[ disallowed_cmd ][ cmdname ] ) )
+			{
+				return false;
 			}
 		}
 	}
@@ -225,41 +217,29 @@ has_permission_for_cmd( cmdname, is_clientcmd )
 			{
 				return true;
 			}
-			else if ( cmdname == allowed_cmd )
-			{
-				return true;
-			}
-			else if ( is_clientcmd )
+			else if ( level.tcs_commands[ cmdname ].is_clientcmd )
 			{
 				if ( allowed_cmd == "all_client_cmds" )
 				{
 					return true;
 				}
-				// In this case the token must be a rank name
-				else if ( isDefined( level.client_command_groups[ allowed_cmd ] ) && isDefined( level.client_command_groups[ allowed_cmd ][ cmdname ] ) )
-				{
-					return true;
-				}
 			}
-			else if ( !is_clientcmd )
+			else if ( allowed_cmd == "all_server_cmds" )
 			{
-				if ( allowed_cmd == "all_server_cmds" )
-				{
-					return true;
-				}
-				// In this case the token must be a rank name
-				else if ( isDefined( level.server_command_groups[ allowed_cmd ] ) && isDefined( level.server_command_groups[ allowed_cmd ][ cmdname ] ) )
-				{
-					return true;
-				}
+				return true;
+			}
+			if ( cmdname == allowed_cmd )
+			{
+				return true;
+			}
+			// In this case the token must be a rank name
+			else if ( isDefined( level.command_groups[ allowed_cmd ] ) && isDefined( level.command_groups[ allowed_cmd ][ cmdname ] ) )
+			{
+				return true;
 			}
 		}
 	}
-	if ( is_clientcmd && self.cmdpower >= level.client_commands[ cmdname ].power )
-	{
-		return true;
-	}
-	if ( !is_clientcmd && self.cmdpower >= level.server_commands[ cmdname ].power )
+	if ( self.cmdpower >= level.tcs_commands[ cmdname ].power )
 	{
 		return true;
 	}
