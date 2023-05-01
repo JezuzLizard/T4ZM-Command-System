@@ -168,6 +168,23 @@ cmd_weapon_f( arg_list )
 	}
 }
 
+cmd_ammo_f( arg_list )
+{
+	result = [];
+	weapons = self GetWeaponsList(); 
+
+	for( i = 0; i < weapons.size; i++ )
+	{
+		clipsize = weaponClipSize( weapons[ i ] );
+		self SetWeaponAmmoClip( weapons[ i ], clipsize );
+		self GiveMaxAmmo( weapons[ i ] );
+	}
+
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Gave you full ammo";
+	return result;
+}
+
 cmd_movespeedscale_f( arg_list )
 {
 	result = [];

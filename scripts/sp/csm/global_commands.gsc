@@ -218,6 +218,24 @@ cmd_giveweapon_f( arg_list )
 	return result;
 }
 
+cmd_giveammo_f( arg_list )
+{
+	result = [];
+	target = arg_list[ 0 ];
+	weapons = target GetWeaponsList(); 
+
+	for( i = 0; i < weapons.size; i++ )
+	{
+		clipsize = weaponClipSize( weapons[ i ] );
+		target SetWeaponAmmoClip( weapons[ i ], clipsize );
+		target GiveMaxAmmo( weapons[ i ] );
+	}
+
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = "Gave " + target.playername + " full ammo";
+	return result;
+}
+
 CMD_SETRANK_f( arg_list )
 {
 	result = [];

@@ -109,6 +109,7 @@ main()
 	cmd_addcommand( "givenotarget", false, "gnt", "givenotarget <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVENOTARGET_f, "cheat", 1, true );
 	cmd_addcommand( "giveinvisible", false, "ginv", "giveinvisible <name|guid|clientnum|self>", scripts\sp\csm\global_commands::CMD_GIVEINVISIBLE_f, "cheat", 1, true );
 	cmd_addcommand( "giveweapon", false, "givewep", "giveweapon <name|guid|clientnum|self> <weaponname|all>", scripts\sp\csm\global_commands::cmd_giveweapon_f, "cheat", 2, true );
+	cmd_addcommand( "giveammo", false, "givewep", "giveammo <name|guid|clientnum|self>", scripts\sp\csm\global_commands::cmd_giveammo_f, "cheat", 1, true );
 	cmd_addcommand( "setrank", false, "sr", "setrank <name|guid|clientnum|self> <rank>", scripts\sp\csm\global_commands::CMD_SETRANK_f, "host", 2, false );
 	cmd_addcommand( "setmovespeedscale", false, "smvsps smss", "setmovespeedscale <name|guid|clientnum|self> <val>", scripts\sp\csm\global_commands::cmd_setmovespeedscale_f, "cheat", 2, true );
 
@@ -143,6 +144,7 @@ main()
 	cmd_register_arg_types_for_cmd( "givenotarget", "player" );
 	cmd_register_arg_types_for_cmd( "giveinvisible", "player" );
 	cmd_register_arg_types_for_cmd( "giveweapon", "player weapon" );
+	cmd_register_arg_types_for_cmd( "giveammo", "player" );
 	cmd_register_arg_types_for_cmd( "setrank", "player rank" );
 	cmd_register_arg_types_for_cmd( "setmovespeedscale", "player wholefloat" );
 	cmd_register_arg_types_for_cmd( "execonallplayers", "cmdalias" );
@@ -162,6 +164,7 @@ main()
 	cmd_addcommand( "teleport", true, "tele", "teleport <name|guid|clientnum>", scripts\sp\csm\global_client_commands::CMD_TELEPORT_f, "cheat", 1, false );
 	cmd_addcommand( "cvar", true, undefined, "cvar <cvarname> <newval>", scripts\sp\csm\global_client_commands::CMD_CVAR_f, "cheat", 2, false );
 	cmd_addcommand( "weapon", true, "wep", "weapon <weaponname|all>", scripts\sp\csm\global_client_commands::cmd_weapon_f, "cheat", 1, true );
+	cmd_addcommand( "ammo", true, "wep", "ammo", scripts\sp\csm\global_client_commands::cmd_ammo_f, "cheat", 0, true );
 	cmd_addcommand( "movespeedscale", true, "mvsps mss", "movespeedscale <val>", scripts\sp\csm\global_client_commands::cmd_movespeedscale_f, "cheat", 1, true );
 	cmd_addcommand( "togglehud", true, "toghud", "togglehud", scripts\sp\csm\global_client_commands::cmd_togglehud_f, "none", 0, false );
 
