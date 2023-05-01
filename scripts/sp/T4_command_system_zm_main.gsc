@@ -16,14 +16,14 @@ main()
 	cmd_addcommand( "givepoints", false, "gpts", "givepoints <name|guid|clientnum|self> <amount>", ::cmd_givepoints_f, "cheat", 2, false );
 	cmd_addcommand( "giveautokill", false, "gak", "giveautokill <name|guid|clientnum|self>", ::cmd_giveautokill_f, "cheat", 1, true );
 
-	cmd_register_arg_types_for_server_cmd( "spectator", "player" );
-	cmd_register_arg_types_for_server_cmd( "togglerespawn", "player" );
-	cmd_register_arg_types_for_server_cmd( "givepoints", "player int" );
+	cmd_register_arg_types_for_cmd( "spectator", "player" );
+	cmd_register_arg_types_for_cmd( "togglerespawn", "player" );
+	cmd_register_arg_types_for_cmd( "givepoints", "player int" );
 
 	cmd_addcommand( "points", true, "pts", "points <amount>", ::CMD_POINTS_f, "cheat", 1, false );
 	cmd_addcommand( "autokill", true, "ak", "autokill", ::cmd_autokill_f, "cheat", 0, true );
 
-	cmd_register_arg_types_for_client_cmd( "points", "int" );
+	cmd_register_arg_types_for_cmd( "points", "int" );
 
 	level thread check_for_command_alias_collisions();
 	level thread on_unittest_start();
@@ -104,7 +104,7 @@ CMD_RESPAWNSPECTATORS_f( arg_list )
 	players = getPlayers();
 	for ( i = 0; i < players.size; i++ )
 	{
-		if ( players[ i ].sessionstate == "spectator" && isDefined( players[ i ].spectator_respawn ) )
+		if ( players[ i ].sessionstate == "spectator" )
 		{
 			players[ i ] [[ level.spawnplayer ]]();
 

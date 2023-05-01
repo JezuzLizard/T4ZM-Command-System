@@ -206,7 +206,6 @@ cmd_giveweapon_f( arg_list )
 		}
 		result[ "filter" ] = "cmdinfo";
 		result[ "message" ] = "Gave " + target.playername + " all weapons";
-		return result;
 	}
 	else 
 	{
@@ -215,8 +214,8 @@ cmd_giveweapon_f( arg_list )
 		target SwitchToWeapon( weapon );
 		result[ "filter" ] = "cmdinfo";
 		result[ "message" ] = "Gave " + target.playername + " " + weapon;
-		return result;
 	}	
+	return result;
 }
 
 CMD_SETRANK_f( arg_list )
@@ -289,10 +288,6 @@ CMD_PLAYERLIST_f( arg_list )
 {
 	result = [];
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
-	if ( channel != "con" )
-	{
-		channel = "iprint";
-	}
 	players = getPlayers();
 	if ( players.size == 0 )
 	{
@@ -311,11 +306,11 @@ list_players_throttled( channel, players )
 	{
 		if ( is_true( self.is_server ) || self.cmdpower >= level.CMD_POWER_MODERATOR )
 		{
-			message = "^3" + players[ i ].name + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
+			message = "^3" + players[ i ].playername + " " + players[ i ] getGUID() + " " + players[ i ] getEntityNumber();
 		}
 		else 
 		{
-			message = "^3" + players[ i ].name + " " + players[ i ] getEntityNumber();
+			message = "^3" + players[ i ].playername + " " + players[ i ] getEntityNumber();
 		}
 		level scripts\sp\csm\_com::com_printf( channel, "notitle", message, self );
 		wait 0.1;
@@ -330,10 +325,6 @@ CMD_CMDLIST_f( arg_list )
 {
 	result = [];
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
-	if ( channel != "con" )
-	{
-		channel = "iprint";
-	}
 	self thread list_cmds_throttled( channel );
 	return result;
 }
@@ -362,10 +353,6 @@ list_cmds_throttled( channel )
 cmd_weaponlist_f( arg_list )
 {
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
-	if ( channel != "con" )
-	{
-		channel = "iprint";
-	}
 	weapons = getArrayKeys( level.zombie_include_weapons );
 	for ( i = 0; i < weapons.size; i++ )
 	{
@@ -377,16 +364,12 @@ cmd_weaponlist_f( arg_list )
 cmd_help_f( arg_list )
 {
 	result = [];
-	channel = self com_get_cmd_feedback_channel();
-	if ( channel != "con" )
-	{
-		channel = "iprint";
-	}
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( is_true( self.is_server ) )
 	{
-		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view cmds you can use do tcscmd cmdlist in the console", self );
-		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view players in the server do tcscmd playerlist in the console", self );
-		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view the usage of a specific cmd do tcscmd help <cmdalias>", self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view cmds you can use do tcscmd cmdlist in the console", self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view players in the server do tcscmd playerlist in the console", self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view the usage of a specific cmd do tcscmd help <cmdalias>", self );
 		if ( isDefined( level.tcs_additional_help_prints_func ) )
 		{
 			self [[ level.tcs_additional_help_prints_func ]]( channel );
@@ -394,14 +377,14 @@ cmd_help_f( arg_list )
 	}
 	else 
 	{
-		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view cmds you can use do /cmdlist in the chat", self );
-		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view players in the server do /playerlist in the chat", self );
-		level scripts\sp\csm\_com::ccom_printf( channel, "notitle", "^3To view the usage of a specific cmd do /help <cmdalias>", self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view cmds you can use do /cmdlist in the chat", self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view players in the server do /playerlist in the chat", self );
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "^3To view the usage of a specific cmd do /help <cmdalias>", self );
 		if ( isDefined( level.tcs_additional_help_prints_func ) )
 		{
 			self [[ level.tcs_additional_help_prints_func ]]( channel );
 		}
-		level scripts\sp\csm\_com::ccom_printf( channel, "cmdinfo", "^3Use shift + ` and scroll to the bottom to view the full list", self );
+		level scripts\sp\csm\_com::com_printf( channel, "cmdinfo", "^3Use shift + ` and scroll to the bottom to view the full list", self );
 	}
 	return result;
 }
@@ -410,15 +393,11 @@ cmd_dodamage_f( arg_list )
 {
 	result = [];
 	target = arg_list[ 0 ];
-	arg_as_float = arg_list[ 1 ];
-	damage = arg_as_float;
+	damage = arg_list[ 1 ];
 	pos = arg_list[ 2 ];
 	attacker = arg_list[ 3 ];
-	inflictor = arg_list[ 4 ];
-	hitloc = arg_list[ 5 ];
-	mod = arg_list[ 6 ];
-	idflags = arg_list[ 7 ];
-	weapon = arg_list[ 8 ];
+	destructible_piece_index = arg_list[ 4 ];
+	mod = arg_list[ 5 ];
 	switch ( arg_list.size )
 	{
 		case 3:
@@ -428,28 +407,26 @@ cmd_dodamage_f( arg_list )
 			target dodamage( damage, pos, attacker );
 			break;
 		case 5:
-			target dodamage( damage, pos, attacker, inflictor );
+			target dodamage( damage, pos, attacker, destructible_piece_index );
 			break;
 		case 6:
-			target dodamage( damage, pos, attacker, inflictor, hitloc );
-			break;
-		case 7:
-			target dodamage( damage, pos, attacker, inflictor, hitloc, mod );
-			break;
-		case 8:
-			target dodamage( damage, pos, attacker, inflictor, hitloc, mod, idflags );
-			break;
-		case 9:
-			target dodamage( damage, pos, attacker, inflictor, hitloc, mod, idflags, weapon );
+			target dodamage( damage, pos, attacker, destructible_piece_index, mod );
 			break;
 		default:
 			result[ "filter" ] = "cmderror";
-			result[ "message" ] = "Too many parameters sent to cmd dodamage max is 9";
+			result[ "message" ] = "Too many parameters sent to cmd dodamage max is 6";
 			return result;
 	}
-
-	//result[ "filter" ] = "cmdinfo";
-	//result[ "message" ] = self.playername + " executes executes dodamage " + isPlayer( target ) ? target.playername : target.targetname + " for " + damage + " damage";
+	if ( isPlayer( target ) )
+	{
+		target_name = target.playername;
+	}
+	else
+	{
+		target_name = target.classname;
+	}
+	result[ "filter" ] = "cmdinfo";
+	result[ "message" ] = self.playername + " executes executes dodamage on " + target_name + " for " + damage + " damage";
 	return result;
 }
 

@@ -127,7 +127,7 @@ powerup_list_zm()
 weapon_is_available( weapon )
 {
 	possible_weapons = getArrayKeys( level.zombie_include_weapons );
-	return weapon_is_available;
+	return isDefined( possible_weapons[ weapon ] );
 }
 
 get_all_weapons()

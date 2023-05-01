@@ -139,18 +139,19 @@ main()
 	cmd_addcommand( "pause", false, "pa", "pause [minutes]", scripts\sp\csm\global_commands::cmd_pause_f, "cheat", 0, false );
 	cmd_addcommand( "unpause", false, "up", "unpause", scripts\sp\csm\global_commands::cmd_unpause_f, "cheat", 0, false );
 
-	cmd_register_arg_types_for_server_cmd( "givegod", "player" );
-	cmd_register_arg_types_for_server_cmd( "givenotarget", "player" );
-	cmd_register_arg_types_for_server_cmd( "giveinvisible", "player" );
-	cmd_register_arg_types_for_server_cmd( "setrank", "player rank" );
-	cmd_register_arg_types_for_server_cmd( "setmovespeedscale", "player wholefloat" );
-	cmd_register_arg_types_for_server_cmd( "execonallplayers", "cmdalias" );
-	cmd_register_arg_types_for_server_cmd( "playerlist", "team" );
-	cmd_register_arg_types_for_server_cmd( "help", "cmdalias" );
-	cmd_register_arg_types_for_server_cmd( "unittest", "int" );
-	cmd_register_arg_types_for_server_cmd( "testcmd", "cmdalias wholenum wholenum" );
-	cmd_register_arg_types_for_server_cmd( "dodamage", "entity float vector entity entity hitloc MOD idflags weapon" );
-	cmd_register_arg_types_for_server_cmd( "pause", "wholenum" );
+	cmd_register_arg_types_for_cmd( "givegod", "player" );
+	cmd_register_arg_types_for_cmd( "givenotarget", "player" );
+	cmd_register_arg_types_for_cmd( "giveinvisible", "player" );
+	cmd_register_arg_types_for_cmd( "giveweapon", "player weapon" );
+	cmd_register_arg_types_for_cmd( "setrank", "player rank" );
+	cmd_register_arg_types_for_cmd( "setmovespeedscale", "player wholefloat" );
+	cmd_register_arg_types_for_cmd( "execonallplayers", "cmdalias" );
+	cmd_register_arg_types_for_cmd( "playerlist", "team" );
+	cmd_register_arg_types_for_cmd( "help", "cmdalias" );
+	cmd_register_arg_types_for_cmd( "unittest", "int" );
+	cmd_register_arg_types_for_cmd( "testcmd", "cmdalias wholenum wholenum" );
+	cmd_register_arg_types_for_cmd( "dodamage", "entity float vector entity int MOD" );
+	cmd_register_arg_types_for_cmd( "pause", "wholenum" );
 
 	cmd_addcommand( "god", true, undefined, "god", scripts\sp\csm\global_client_commands::CMD_GOD_f, "cheat", 0, true );
 	cmd_addcommand( "notarget", true, "nt", "notarget", scripts\sp\csm\global_client_commands::CMD_NOTARGET_f, "cheat", 0, true );
@@ -164,8 +165,9 @@ main()
 	cmd_addcommand( "movespeedscale", true, "mvsps mss", "movespeedscale <val>", scripts\sp\csm\global_client_commands::cmd_movespeedscale_f, "cheat", 1, true );
 	cmd_addcommand( "togglehud", true, "toghud", "togglehud", scripts\sp\csm\global_client_commands::cmd_togglehud_f, "none", 0, false );
 
-	cmd_register_arg_types_for_client_cmd( "teleport", "player" );
-	cmd_register_arg_types_for_client_cmd( "movespeedscale", "wholefloat" );
+	cmd_register_arg_types_for_cmd( "teleport", "player" );
+	cmd_register_arg_types_for_cmd( "weapon", "weapon" );
+	cmd_register_arg_types_for_cmd( "movespeedscale", "wholefloat" );
 
 	cmd_register_arg_type_handlers( "player", ::arg_player_handler, ::arg_generate_rand_player, ::arg_cast_to_player, "not a valid player" );
 	cmd_register_arg_type_handlers( "wholenum", ::arg_wholenum_handler, ::arg_generate_rand_wholenum, ::arg_cast_to_int, "not a whole number" );
@@ -173,17 +175,18 @@ main()
 	cmd_register_arg_type_handlers( "float", ::arg_float_handler, ::arg_generate_rand_float, ::arg_cast_to_float, "not a float" );
 	cmd_register_arg_type_handlers( "wholefloat", ::arg_wholefloat_handler, ::arg_generate_rand_wholefloat, ::arg_cast_to_float, "not a float greater than 0" );
 	cmd_register_arg_type_handlers( "vector", ::arg_vector_handler, ::arg_generate_rand_vector, ::arg_cast_to_vector, "not a valid vector, format is float,float,float" );
-	cmd_register_arg_type_handlers( "team", ::arg_team_handler, ::arg_generate_rand_team, undefined, "not a valid team" );
 	cmd_register_arg_type_handlers( "cmdalias", ::arg_cmdalias_handler, ::arg_generate_rand_cmdalias, ::arg_cast_to_cmd, "not a valid cmdalias" );
 	cmd_register_arg_type_handlers( "rank", ::arg_rank_handler, ::arg_generate_rand_rank, undefined, "not a valid rank" );
 	cmd_register_arg_type_handlers( "entity", ::arg_entity_handler, ::arg_generate_rand_entity, ::arg_cast_to_entity, "not a valid entity" );
 	cmd_register_arg_type_handlers( "hitloc", ::arg_hitloc_handler, ::arg_generate_rand_hitloc, undefined, "not a valid hitloc" );
 	cmd_register_arg_type_handlers( "MOD", ::arg_mod_handler, ::arg_generate_rand_mod, ::arg_cast_to_mod, "not a valid mod" );
 	cmd_register_arg_type_handlers( "idflags", ::arg_idflags_handler, ::arg_generate_rand_idflags, ::arg_cast_to_int, "not a valid idflag" );
+	cmd_register_arg_type_handlers( "weapon", ::arg_weapon_handler, ::arg_generate_rand_weapon, undefined, "not a valid weapon" );
 
 	build_hitlocs_array();
 	build_mods_array();
 	build_idflags_array();
+	add_unittest_cmd_exclusions();
 	
 	if ( !isDedicated() )
 	{
@@ -204,10 +207,6 @@ main()
 	level thread check_for_command_alias_collisions();
 	level.command_init_done = true;
 }
-
-	blacklisted_cmds_client = array2( "cvar" );
-	blacklisted_cmds_server1 = array2( "rotate", "restart", "changemap", "unittest", "unittestinvalidargs", "setcvar", "dvar", "cvarall", "spectator", "execonallplayers" );
-	blacklisted_cmds_server2 = array2( "setrotation", "resetrotation", "nextmap", "testcmd" );
 
 init()
 {
@@ -382,4 +381,30 @@ on_connect_internal()
 	found_entry = undefined;
 	entry = undefined;
 	player_in_server = undefined;
+}
+
+add_unittest_cmd_exclusions()
+{
+	cmd_add_unittest_exclusion( "rotate" );
+	cmd_add_unittest_exclusion( "restart" );
+	cmd_add_unittest_exclusion( "changemap" );
+	cmd_add_unittest_exclusion( "unittest" );
+	cmd_add_unittest_exclusion( "unittestinvalidargs" );
+	cmd_add_unittest_exclusion( "setcvar" );
+	cmd_add_unittest_exclusion( "dvar" );
+	cmd_add_unittest_exclusion( "cvarall" );
+	cmd_add_unittest_exclusion( "givepermaperk" );
+	cmd_add_unittest_exclusion( "toggleoutofplayableareamonitor" );
+	cmd_add_unittest_exclusion( "spectator" );
+	cmd_add_unittest_exclusion( "execonallplayers" );
+	cmd_add_unittest_exclusion( "testcmd" );
+	cmd_add_unittest_exclusion( "entitylist" );
+	cmd_add_unittest_exclusion( "weaponlist" );
+	cmd_add_unittest_exclusion( "poweruplist" );
+	cmd_add_unittest_exclusion( "perklist" );
+	cmd_add_unittest_exclusion( "cvar" );
+	cmd_add_unittest_exclusion( "permaperk" );
+	cmd_add_unittest_exclusion( "nextmap" );
+	cmd_add_unittest_exclusion( "resetrotation" );
+	cmd_add_unittest_exclusion( "setrotation" );
 }

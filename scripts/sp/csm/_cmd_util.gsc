@@ -119,6 +119,11 @@ cast_str_to_player( clientnum_guid_or_name, noprint )
 		partial_message = undefined;
 		return undefined;
 	}
+	//Arg was already casted so just return the arg
+	if ( isPlayer( clientnum_guid_or_name ) )
+	{
+		return clientnum_guid_or_name;
+	}
 	if ( clientnum_guid_or_name == "self" )
 	{
 		if ( is_true( self.is_server ) )
@@ -224,8 +229,12 @@ is_player_valid( player, checkignoremeflag, ignore_laststand_players )
 	return 1;
 }
 
-cast_str_to_entity( entnum_targetname_or_self, noprint = false )
+cast_str_to_entity( entnum_targetname_or_self, noprint )
 {
+	if ( !isDefined( noprint ) )
+	{
+		noprint = false;
+	}
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( !isDefined( entnum_targetname_or_self ) )
 	{
@@ -594,9 +603,9 @@ cmd_addcommand( cmdname, is_clientcmd, cmdaliases, cmdusage, cmdfunc, rankgroup,
 	if ( isDefined( cmdaliases ) )
 	{
 		cmd_aliases_tokens = strTok( cmdaliases, " " );
-		for ( i = 1; i < cmd_aliases_tokens.size; i++ )
+		for ( i = 0; i < cmd_aliases_tokens.size; i++ )
 		{
-			aliases[ i ] = cmd_aliases_tokens[ i - 1 ];
+			aliases[ i + 1 ] = cmd_aliases_tokens[ i ];
 		}
 	}
 
@@ -608,6 +617,10 @@ cmd_addcommand( cmdname, is_clientcmd, cmdaliases, cmdusage, cmdfunc, rankgroup,
 	level.tcs_commands[ cmdname ].power = level.tcs_ranks[ rankgroup ].cmdpower;
 	level.tcs_commands[ cmdname ].minargs = minargs;
 	level.tcs_commands[ cmdname ].uses_player_validity_check = uses_player_validity_check;
+	if ( !isDefined( level.tcs_commands_total ) )
+	{
+		level.tcs_commands_total = 9;
+	}
 	level.tcs_commands_total++;
 	if ( is_true( is_threaded_cmd ) )
 	{
@@ -726,24 +739,32 @@ cmd_add_unittest_exclusion( cmdname )
 	level.command_system_unittest_cmd_exclusions[ cmdname ] = true;
 }
 
-cmd_execute_internal( cmdname, arg_list, is_clientcmd, silent, logprint )
+cmd_execute_internal( cmdname, arg_list, silent, logprint )
 {
 	original_arg_list = arg_list;
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	result = [];
-	if ( !self test_cmd_is_valid( cmdname, arg_list, is_clientcmd ) )
+	if ( !self test_cmd_is_valid( cmdname, arg_list ) )
 	{
 		return;
 	}
 	// Cast the args using the cast handlers
 	// Arg types without a cast handler don't get casted
 	// Leaving the casting up to the cmd itself
-	argtypes = level.tcs_commands[ cmdname ].argtypes;
-	for ( i = 0; i < arg_list.size; i++ )
+	casted_args = false;
+	if ( arg_list.size > 0 )
 	{
-		if ( isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ] ) && isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ].cast_func ) )
+		argtypes = level.tcs_commands[ cmdname ].argtypes;
+		if ( isDefined( argtypes ) && argtypes.size > 0 )
 		{
-			arg_list[ i ] = self [[ level.tcs_arg_type_handlers[ cmdname ].cast_func ]]( arg_list[ i ] );
+			for ( i = 0; i < arg_list.size; i++ )
+			{
+				if ( isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ] ) && isDefined( level.tcs_arg_type_handlers[ argtypes[ i ] ].cast_func ) )
+				{
+					arg_list[ i ] = self [[ level.tcs_arg_type_handlers[ argtypes[ i ] ].cast_func ]]( arg_list[ i ] );
+				}
+			}
+			casted_args = true;
 		}
 	}
 	// Check if the cmd should execute if the target is in an invalid state
@@ -751,8 +772,9 @@ cmd_execute_internal( cmdname, arg_list, is_clientcmd, silent, logprint )
 	// For not only checks players
 	if ( is_true( level.tcs_commands[ cmdname ].uses_player_validity_check ) )
 	{
-		if ( isDefined( level.tcs_player_is_valid_check ) && ![[ level.tcs_player_is_valid_check ]]( arg_list[ 0 ] ) )
+		if ( isDefined( level.tcs_player_is_valid_check ) )
 		{
+			target = undefined;
 			if ( level.tcs_commands[ cmdname ].is_clientcmd )
 			{
 				message = "You are not in a valid state for " + cmdname + " to work";
@@ -760,21 +782,32 @@ cmd_execute_internal( cmdname, arg_list, is_clientcmd, silent, logprint )
 			}
 			else 
 			{
-				message = "Target " + arg_list[ 0 ].playername + " is not in a valid state for " + cmdname + " to work";
-				target = arg_list[ 0 ];
+				if ( casted_args )
+				{
+					message = "Target " + arg_list[ 0 ].playername + " is not in a valid state for " + cmdname + " to work";
+					target = arg_list[ 0 ];
+				}
+				else 
+				{
+					target = cast_str_to_player( arg_list[ 0 ] );
+					message = "Target " + target.playername + " is not in a valid state for " + cmdname + " to work";
+				}
 			}
-			level scripts\sp\csm\_com::com_printf( channel, "cmderror", message, self );
-			return;
+			if ( ![[ level.tcs_player_is_valid_check ]]( target ) )
+			{
+				level scripts\sp\csm\_com::com_printf( channel, "cmderror", message, self );
+				return;
+			}
 		}
 	}
 	if ( is_true( level.threaded_commands[ cmdname ] ) )
 	{
-		self thread [[ level.server_commands[ cmdname ].func ]]( arg_list );
+		self thread [[ level.tcs_commands[ cmdname ].func ]]( arg_list );
 		return;
 	}
 	else 
 	{
-		result = self [[ level.server_commands[ cmdname ].func ]]( arg_list );
+		result = self [[ level.tcs_commands[ cmdname ].func ]]( arg_list );
 	}
 	if ( is_true( logprint ) && !is_true( level.doing_command_system_unittest ) )
 	{
@@ -863,7 +896,7 @@ parse_cmd_message( message )
 	}
 	multi_cmds = [];
 	command_keys = [];
-	multiple_cmds_keys = strTok( stripped_message, ";" );
+	multiple_cmds_keys = strTok( stripped_message, "|" );
 	for ( i = 0; i < multiple_cmds_keys.size; i++ )
 	{
 		cmd_args = strTok( multiple_cmds_keys[ i ], " " );
@@ -902,7 +935,7 @@ get_cmd_from_alias( alias )
 	return "";
 }
 
-test_cmd_is_valid( cmdname, arg_list, is_clientcmd )
+test_cmd_is_valid( cmdname, arg_list )
 {
 	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
 	if ( arg_list.size < level.tcs_commands[ cmdname ].minargs )
@@ -1134,13 +1167,14 @@ arg_generate_rand_vector()
 	return vec[ 0 ] + "," + vec[ 1 ] + "," + vec[ 2 ];
 }
 
+arg_cast_to_vector( arg )
+{
+	return cast_str_to_vector( arg );
+}
+
 arg_cmdalias_handler( arg )
 {
-	cmd_to_execute = get_client_cmd_from_alias( arg );
-	if ( cmd_to_execute == "" )
-	{
-		cmd_to_execute = get_server_cmd_from_alias( arg );
-	}
+	cmd_to_execute = get_cmd_from_alias( arg );
 	return cmd_to_execute != "";
 }
 
@@ -1156,10 +1190,15 @@ arg_generate_rand_cmdalias()
 		}
 		for ( j = 0; j < level.tcs_commands[ command_keys[ i ] ].aliases.size; j++ )
 		{
-			aliases[ aliases.size ] = level.tcs_commands[ server_command_keys[ i ] ].aliases[ j ];
+			aliases[ aliases.size ] = level.tcs_commands[ command_keys[ i ] ].aliases[ j ];
 		}
 	}
 	return aliases[ randomInt( aliases.size ) ];
+}
+
+arg_cast_to_cmd( arg )
+{
+	return get_cmd_from_alias( arg );
 }
 
 arg_rank_handler( arg )
@@ -1175,7 +1214,7 @@ arg_generate_rand_rank()
 
 arg_entity_handler( arg )
 {
-	return isDefined( self find_entity_in_server( arg ) );
+	return isDefined( self cast_str_to_entity( arg ) );
 }
 
 arg_generate_rand_entity()
@@ -1260,4 +1299,25 @@ arg_generate_rand_idflags()
 		}
 	}
 	return flags;
+}
+
+arg_weapon_handler( arg )
+{
+	channel = self scripts\sp\csm\_com::com_get_cmd_feedback_channel();
+	if ( !isDefined( level.zombie_include_weapons ) || level.zombie_include_weapons.size <= 0 )
+	{
+		level scripts\sp\csm\_com::com_printf( channel, "notitle", "There are no weapons on the map", self );
+		return false;
+	}
+	return isDefined( level.zombie_include_weapons[ arg ] );
+}
+
+arg_generate_rand_weapon()
+{
+	if ( !isDefined( level.zombie_include_weapons ) || level.zombie_include_weapons.size <= 0 )
+	{
+		return "invalid_weapon";
+	}
+	weapon_keys = getArrayKeys( level.zombie_include_weapons );
+	return weapon_keys[ randomInt( weapon_keys.size ) ];	
 }
